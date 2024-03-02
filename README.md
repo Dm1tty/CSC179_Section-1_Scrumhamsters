@@ -22,3 +22,5 @@ npx expo start
 - Scan the QR code in the terminal with the app
 - The app should now be running on your phone
     - Dev server will reflect your changes live!
+# Making changes
+- If you are new to React/React Native/Expo I made a short tutorial in [CONTRIBUTING.md](documentation/CONTRIBUTING.md). *Instructions for making your first change and commiting it to the github repo are in here. If you have any issues this week or get stuck send a message in the Discord and I will help you out 👍
