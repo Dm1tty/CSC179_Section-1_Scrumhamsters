@@ -1,8 +1,14 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-import ExampleComponent from './components/ExampleComponent'
+import { Button, StyleSheet, Text, View } from 'react-native';
+import ExampleComponent from '../components/ExampleComponent'
+import { Link } from 'expo-router';
+import * as Linking from 'expo-linking'
 
-export default function App() {
+export default function Index() {
+  const testPatientUrl = Linking.createURL('patient/', {
+    queryParams: { patient_id: '1'}
+  })
+
   return (
     <View style={styles.container}>
       <View>
@@ -15,6 +21,14 @@ export default function App() {
         <StatusBar style="auto" />
       </View>
       <ExampleComponent/>
+      <View>
+        <Link style={styles.viewPatientButton} href={"patient/bob"}>
+          View test patient
+        </Link>
+        <Link style={styles.viewPatientButton} href={testPatientUrl}>
+          View test patient
+        </Link>
+      </View>
     </View>
   );
 }
@@ -31,7 +45,10 @@ const styles = StyleSheet.create({
   },
   nameMohamedAhmed: {
     color: '#00FF00',
+  },
+  viewPatientButton: {
+    borderWidth: 1,
+    backgroundColor: "#11EE11",
+    padding: 20
   }
-
-
 });
