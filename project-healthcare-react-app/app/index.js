@@ -18,6 +18,9 @@ export default function Index() {
         <Text>Team members:</Text>
         <Text style={styles.nameIanCharamuga}>Ian Charamuga</Text>
         <Text style={styles.nameMohamedAhmed}>Mohamed Ahmed</Text>
+        <Text style={styles.nameMohamedAhmed}>Julian Martinez</Text>
+
+
         <StatusBar style="auto" />
       </View>
       <ExampleComponent/>
