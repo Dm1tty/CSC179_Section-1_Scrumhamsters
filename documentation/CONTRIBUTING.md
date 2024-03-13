@@ -38,6 +38,7 @@ export default function App() {
       <Text>Add your name below and commit the change!</Text>
       <Text>Team members:</Text>
       <Text>Ian Charamuga</Text>
+      <Text>Marielle McBride</Text>
       <StatusBar style="auto" />
     </View>
   );
