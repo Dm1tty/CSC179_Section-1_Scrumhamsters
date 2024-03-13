@@ -19,7 +19,7 @@ export default function Index() {
         <Text style={styles.nameIanCharamuga}>Ian Charamuga</Text>
         <Text style={styles.nameMohamedAhmed}>Mohamed Ahmed</Text>
         <Text style={styles.nameMohamedAhmed}>Julian Martinez</Text>
-
+        <Text style={styles.nameIanCharamuga}>Dzmitry Matsiulka</Text>
 
         <StatusBar style="auto" />
       </View>
