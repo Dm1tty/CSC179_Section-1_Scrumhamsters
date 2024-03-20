@@ -12,8 +12,6 @@ export default function Index() {
   return (
     <View style={styles.container}>
       <View>
-        <Text>Open up App.js to start working on your app!</Text>
-        <Text>Add your name below and commit the change!{'\n'}</Text>
 
         <Text>Team members:</Text>
         <Text style={styles.nameIanCharamuga}>Ian Charamuga</Text>
@@ -33,8 +31,8 @@ export default function Index() {
         </Link>
 
       
-        <Link href="/details" style={styles.linkStyle}>
-          Go to Details Page
+        <Link href="/appointments" style={styles.linkStyle}>
+          Appointments
         </Link>
 
       </View>
