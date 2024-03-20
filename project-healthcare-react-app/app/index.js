@@ -6,7 +6,7 @@ import * as Linking from 'expo-linking'
 
 export default function Index() {
   const testPatientUrl = Linking.createURL('patient/', {
-    queryParams: { patient_id: '1'}
+    queryParams: { patient_id: '1' }
   })
 
   return (
@@ -14,7 +14,7 @@ export default function Index() {
       <View>
         <Text>Open up App.js to start working on your app!</Text>
         <Text>Add your name below and commit the change!{'\n'}</Text>
-        
+
         <Text>Team members:</Text>
         <Text style={styles.nameIanCharamuga}>Ian Charamuga</Text>
         <Text style={styles.nameMohamedAhmed}>Mohamed Ahmed</Text>
@@ -23,7 +23,7 @@ export default function Index() {
 
         <StatusBar style="auto" />
       </View>
-      <ExampleComponent/>
+      <ExampleComponent />
       <View>
         <Link style={styles.viewPatientButton} href={"patient/bob"}>
           View test patient
@@ -31,6 +31,12 @@ export default function Index() {
         <Link style={styles.viewPatientButton} href={testPatientUrl}>
           View test patient
         </Link>
+
+      
+        <Link href="/details" style={styles.linkStyle}>
+          Go to Details Page
+        </Link>
+
       </View>
     </View>
   );
