@@ -3,6 +3,8 @@ import { Button, StyleSheet, Text, View } from 'react-native';
 import ExampleComponent from '../components/ExampleComponent'
 import { Link } from 'expo-router';
 import * as Linking from 'expo-linking'
+import BottomNavBar from '../components/BottomNavBar'; // Adjust the path as necessary
+
 
 export default function Index() {
   const testPatientUrl = Linking.createURL('patient/', {
@@ -13,29 +15,16 @@ export default function Index() {
     <View style={styles.container}>
       <View>
 
-        <Text>Team members:</Text>
-        <Text style={styles.nameIanCharamuga}>Ian Charamuga</Text>
-        <Text style={styles.nameMohamedAhmed}>Mohamed Ahmed</Text>
-        <Text style={styles.nameMohamedAhmed}>Julian Martinez</Text>
-        <Text style={styles.nameIanCharamuga}>Dzmitry Matsiulka</Text>
+       
 
         <StatusBar style="auto" />
       </View>
-      <ExampleComponent />
       <View>
-        <Link style={styles.viewPatientButton} href={"patient/bob"}>
-          View test patient
-        </Link>
-        <Link style={styles.viewPatientButton} href={testPatientUrl}>
-          View test patient
-        </Link>
-
-      
-        <Link href="/appointments" style={styles.linkStyle}>
-          Appointments
-        </Link>
+   
 
       </View>
+      <BottomNavBar />
+      <StatusBar style="auto" />
     </View>
   );
 }
