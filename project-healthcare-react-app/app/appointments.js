@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Button, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Button, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 
 const AppointmentsPage = () => {
   const [selectedTab, setSelectedTab] = useState('Upcoming');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Sample appointments data
   const appointments = [
     { id: 1, type: 'Upcoming', patientName: 'John Doe', time: '2023-10-20T14:00:00Z' },
     { id: 2, type: 'Missed', patientName: 'Jane Smith', time: '2023-10-18T09:00:00Z' },
@@ -13,16 +13,21 @@ const AppointmentsPage = () => {
     { id: 5, type: 'Completed', patientName: 'Chris Davis', time: '2023-10-16T10:00:00Z' },
   ].sort((a, b) => new Date(a.time) - new Date(b.time)); // Sort appointments by time
 
-  // Filter appointments based on selected tab
-  const filteredAppointments = appointments.filter(appointment => appointment.type === selectedTab);
+  // Filter appointments based on selected tab and search query
+  const filteredAppointments = appointments.filter(appointment => {
+    return appointment.type === selectedTab &&
+           appointment.patientName.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.pageTitle}>Appointments</Text>
-        <TouchableOpacity onPress={() => alert('Search functionality not implemented')} style={styles.searchButton}>
-          <Text style={styles.searchButtonText}>Search</Text>
-        </TouchableOpacity>
+        <TextInput
+          placeholder="Search by name"
+          onChangeText={setSearchQuery}
+          style={styles.searchInput}
+        />
       </View>
 
       <View style={styles.tabs}>
