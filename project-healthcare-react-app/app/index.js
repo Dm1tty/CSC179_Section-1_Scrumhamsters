@@ -3,7 +3,7 @@ import { Button, StyleSheet, Text, View } from 'react-native';
 import ExampleComponent from '../components/ExampleComponent'
 import { Link } from 'expo-router';
 import * as Linking from 'expo-linking'
-import BottomNavBar from '../components/BottomNavBar'; // Adjust the path as necessary
+import BottomNavBar from '../components/BottomNavBar'; 
 
 
 export default function Index() {
@@ -14,14 +14,9 @@ export default function Index() {
   return (
     <View style={styles.container}>
       <View>
-
-       
-
         <StatusBar style="auto" />
       </View>
       <View>
-   
-
       </View>
       <BottomNavBar />
       <StatusBar style="auto" />
