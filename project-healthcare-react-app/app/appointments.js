@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Button, ScrollView, TextInput, Image, TouchableOpacity } from 'react-native';
+import BottomNavBar from '../components/BottomNavBar';
+
 
 const AppointmentsPage = () => {
   const [selectedTab, setSelectedTab] = useState('Upcoming');
@@ -17,8 +19,7 @@ const AppointmentsPage = () => {
   // Mock function to simulate navigation
   const navigateToPatientPage = (patientId) => {
     console.log(`Navigating to patient page with ID: ${patientId}`);
-    // Here, you would use your navigation library to navigate,
-    // e.g., navigation.navigate('PatientPage', { patientId: patientId });
+    
   };
   
   // Filter appointments based on selected tab and search query
@@ -56,6 +57,7 @@ const AppointmentsPage = () => {
           </TouchableOpacity>
         ))}
       </ScrollView>
+      <BottomNavBar />
     </View>
   );
         };
