@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image } from 'react-native';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import BottomNavBar from '../components/BottomNavBar'; 
+import { useNavigation } from '@react-navigation/native';
 
 
 const PatientList = () => {
@@ -16,10 +17,11 @@ const PatientList = () => {
     { id: 5, name: 'Chris Davis', age: 65 },
   ];
 
-  // Mock function to simulate navigation
-  const navigateToPatientPage = (patientId) => {
-    console.log(`Navigating to patient page with ID: ${patientId}`);
-    // Implement navigation logic here
+  const navigation = useNavigation();
+
+  const navigateToPatientPage = (patientId, patientName) => {
+    
+    navigation.navigate('PatientDetail', { id: patientId, name: patientName });
   };
 
   // Filter patients based on search query
@@ -43,15 +45,18 @@ const PatientList = () => {
 
       <ScrollView style={styles.patientList}>
         {filteredPatients.map((patient) => (
-          <TouchableOpacity key={patient.id} onPress={() => navigateToPatientPage(patient.id)}>
-            <View style={styles.patientItem}>
-              <Image source={require('../assets/favicon.png')} style={styles.icon} />
-              <View style={styles.patientDetails}>
-                <Text style={styles.patientName}>{patient.name}</Text>
-                <Text style={styles.patientText}>Age: {patient.age}</Text>
-              </View>
+          <TouchableOpacity key={patient.id} onPress={() => navigateToPatientPage(patient.id, patient.name)}>
+          <View style={styles.patientItem}>
+            <Image source={require('../assets/favicon.png')} style={styles.icon} />
+            <View style={styles.patientDetails}>
+              <Text style={styles.patientName}>{patient.name}</Text>
+              <Text style={styles.patientText}>Age: {patient.age}</Text>
+              
+              <Text>View Patient</Text>
             </View>
-          </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+        
         ))}
       </ScrollView>
       <BottomNavBar />
