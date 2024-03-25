@@ -20,7 +20,7 @@ const PatientList = () => {
   const navigation = useNavigation();
 
   const navigateToPatientPage = (patientId, patientName) => {
-    // Use the navigate method from useNavigation
+    
     navigation.navigate('PatientDetail', { id: patientId, name: patientName });
   };
 
@@ -45,18 +45,18 @@ const PatientList = () => {
 
       <ScrollView style={styles.patientList}>
         {filteredPatients.map((patient) => (
-          <TouchableOpacity key={patient.id} onPress={() => navigateToPatientPage()}>
+          <TouchableOpacity key={patient.id} onPress={() => navigateToPatientPage(patient.id, patient.name)}>
           <View style={styles.patientItem}>
             <Image source={require('../assets/favicon.png')} style={styles.icon} />
             <View style={styles.patientDetails}>
               <Text style={styles.patientName}>{patient.name}</Text>
               <Text style={styles.patientText}>Age: {patient.age}</Text>
-              <TouchableOpacity onPress={() => navigateToPatientPage(patient.id, patient.name)}>
-                <Text>View Patient</Text>
-              </TouchableOpacity>
+              
+              <Text>View Patient</Text>
             </View>
           </View>
         </TouchableOpacity>
+        
         ))}
       </ScrollView>
       <BottomNavBar />

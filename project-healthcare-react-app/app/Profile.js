@@ -49,9 +49,10 @@ export default function Profile() {
           color="#FF6347"
         />
       </View>
-      <BottomNavBar />
       
+      <BottomNavBar />
     </View>
+    
   );
 }
 

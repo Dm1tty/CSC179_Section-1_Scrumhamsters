@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useRoute } from '@react-navigation/native'; // Import useRoute
+import { useRoute } from '@react-navigation/native';
 
 const PatientDetail = () => {
   const route = useRoute(); // Use useRoute to access the route object
@@ -14,7 +14,7 @@ const PatientDetail = () => {
   );
 };
 
-// Your styling remains the same
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
