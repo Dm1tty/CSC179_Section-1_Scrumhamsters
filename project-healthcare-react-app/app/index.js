@@ -1,6 +1,16 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { StatusBar, StyleSheet, Text, View, Image, ScrollView } from 'react-native';
 import BottomNavBar from '../components/BottomNavBar';
+
+
+
+import firebase, {getApps} from 'firebase/app';
+
+import { db } from '../firebaseConfig'; // Adjust the import path
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
+
+
+
 
 // Sample data for appointments
 const appointments = [
@@ -20,6 +30,10 @@ const appointments = [
 ];
 
 export default function Index() {
+fetchCollectionData();
+ 
+
+  
   return (
     <View style={styles.container}>
       <ScrollView>
@@ -44,6 +58,13 @@ export default function Index() {
   );
 }
 
+// Function to fetch documents from a Firestore collection
+async function fetchCollectionData() {
+  const querySnapshot = await getDocs(collection(db, "patients"));
+  querySnapshot.forEach((doc) => {
+    console.log(`${doc.id} => ${JSON.stringify(doc.data())}`);
+  });
+}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
