@@ -1,10 +1,10 @@
-import React, {useEffect} from 'react';
-import { StatusBar, StyleSheet, Text, View, Image, ScrollView } from 'react-native';
+import React, { useEffect } from 'react';
+import { StatusBar, StyleSheet, Text, View, Image, ScrollView, Button } from 'react-native';
 import BottomNavBar from '../components/BottomNavBar';
 
+import { useNavigation } from '@react-navigation/native';
 
-
-import firebase, {getApps} from 'firebase/app';
+import firebase, { getApps } from 'firebase/app';
 
 import { db } from '../firebaseConfig'; // Adjust the import path
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
@@ -26,14 +26,15 @@ const appointments = [
     patientPictureUrl: 'https://via.placeholder.com/150',
     appointmentLength: '45 mins',
   },
-  
+
 ];
 
 export default function Index() {
-fetchCollectionData();
- 
+  fetchCollectionData();
 
-  
+  const navigation = useNavigation();
+
+
   return (
     <View style={styles.container}>
       <ScrollView>
@@ -49,10 +50,20 @@ fetchCollectionData();
                 <Text style={styles.rowText}>Age: {appointment.age}</Text>
                 <Text style={styles.rowText}>Duration: {appointment.appointmentLength}</Text>
               </View>
+
             </View>
           ))}
         </View>
       </ScrollView>
+      <Button
+        title="Create a Patient"
+        onPress={() => navigation.navigate('CreatePatientScreen')}
+      />
+
+      <Button
+        title="Create an Appointment"
+        onPress={() => navigation.navigate('CreateAppointmentScreen')}
+      />
       <BottomNavBar />
     </View>
   );
