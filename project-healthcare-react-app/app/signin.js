@@ -18,7 +18,7 @@ const SignInScreen = () => {
   return (
     <View style={styles.container}>
         <Image
-        source={require('./assets/back-icon.png')}
+        source={require('../assets/back-icon.png')}
         style={{ width: 26, height: 22 }}
       />
       <Text style={styles.title}>Sign In</Text>
@@ -47,7 +47,7 @@ const SignInScreen = () => {
       </TouchableOpacity>
       <TouchableOpacity style={styles.googleButton} onPress={handleGoogleSignIn}>
         <Image
-          source={require('./assets/google-icon.png')}
+          source={require('../assets/google-icon.png')}
           style={styles.googleImage}
         /> 
         <Text style={styles.googleText}>Continue With Google</Text>
