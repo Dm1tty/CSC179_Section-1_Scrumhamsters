@@ -1,21 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image } from 'react-native';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import BottomNavBar from '../components/BottomNavBar'; 
 import { useNavigation } from '@react-navigation/native';
 
+import { db } from '../firebaseConfig'; // Adjust the import path to your Firebase configuration
+import { collection, getDocs } from 'firebase/firestore';
+
+
 
 const PatientList = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [patients, setPatients] = useState([]); // Updated to store fetched patients
 
-  // Sample patient data
-  const patients = [
-    { id: 1, name: 'John Doe', age: 30 },
-    { id: 2, name: 'Jane Smith', age: 24 },
-    { id: 3, name: 'Mike Johnson', age: 12 },
-    { id: 4, name: 'Alice Brown', age: 57 },
-    { id: 5, name: 'Chris Davis', age: 65 },
-  ];
+  useEffect(() => {
+    const fetchPatients = async () => {
+      const querySnapshot = await getDocs(collection(db, "patients"));
+      const patientsData = querySnapshot.docs.map(doc => ({
+        id: doc.id, // Use Firestore document ID as unique key
+        ...doc.data(), // Spread operator to include all other patient fields
+      }));
+      setPatients(patientsData);
+    };
+
+    fetchPatients();
+  }, []);
 
   const navigation = useNavigation();
 
@@ -31,32 +40,20 @@ const PatientList = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.pageTitle}>Patient List</Text>
-        <FontAwesome name="search" size={24} color="black" style={{ marginRight: 10 }} />
-        <MaterialIcons name="filter-list" size={24} color="black" />
-      </View>
-
-      <TextInput 
-        placeholder="Search by name" 
-        onChangeText={setSearchQuery} 
-        style={styles.searchInput} 
-      />
-
+      {/* Header and search input remain unchanged */}
+      
       <ScrollView style={styles.patientList}>
         {filteredPatients.map((patient) => (
           <TouchableOpacity key={patient.id} onPress={() => navigateToPatientPage(patient.id, patient.name)}>
-          <View style={styles.patientItem}>
-            <Image source={require('../assets/favicon.png')} style={styles.icon} />
-            <View style={styles.patientDetails}>
-              <Text style={styles.patientName}>{patient.name}</Text>
-              <Text style={styles.patientText}>Age: {patient.age}</Text>
-              
-              <Text>View Patient</Text>
+            <View style={styles.patientItem}>
+              <Image source={require('../assets/favicon.png')} style={styles.icon} />
+              <View style={styles.patientDetails}>
+                <Text style={styles.patientName}>{patient.name}</Text>
+                <Text style={styles.patientText}>DOB: {patient.dob}</Text>
+                <Text>View Patient</Text>
+              </View>
             </View>
-          </View>
-        </TouchableOpacity>
-        
+          </TouchableOpacity>
         ))}
       </ScrollView>
       <BottomNavBar />

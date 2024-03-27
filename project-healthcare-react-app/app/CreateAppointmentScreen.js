@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, TextInput, Button, Text, StyleSheet, Platform, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import DatePicker from '@react-native-community/datetimepicker'; // Ensure you have this installed
-import { format } from 'date-fns'; // Assuming you have date-fns installed for date formatting
+import DatePicker from '@react-native-community/datetimepicker';
+import { startOfDay, addMinutes, format } from 'date-fns';
 
-
-
-import { db } from '../firebaseConfig'; // Adjust the import path
+import { db } from '../firebaseConfig'; 
 import { collection, addDoc, Timestamp, getDocs } from 'firebase/firestore';
 
 import RNPickerSelect from 'react-native-picker-select'; // Import the picker
@@ -19,7 +17,7 @@ const CreateAppointmentScreen = () => {
     const [doctor, setDoctor] = useState('');
     const [patient, setPatient] = useState('');
     const [reason, setReason] = useState('');
-
+    const [appointmentTime, setAppointmentTime] = useState('');
 
     const [doctors, setDoctors] = useState([]);
     const [patients, setPatients] = useState([]);
@@ -56,13 +54,35 @@ const CreateAppointmentScreen = () => {
 
     const dateString = format(date, "PPP"); // Format the date into a readable string
 
+
+    const generateTimeOptions = () => {
+        let times = [];
+        let startTime = startOfDay(new Date()); // Reset to the start of today
+        startTime = addMinutes(startTime, 8 * 60); // Move to 8:00 AM
+      
+        for (let i = 0; i <= 23; i++) { // 8AM to 7:30PM
+          let timeSlot = addMinutes(startTime, 30 * i);
+          times.push({
+            label: format(timeSlot, 'h:mm a'), // Example: "8:00 AM"
+            value: format(timeSlot, 'HH:mm') // Example: "08:00" for easier backend handling
+          });
+        }
+      
+        return times;
+      };
+
     const saveAppointment = async () => {
         try {
+
+            const dateOnly = new Date(date);
+            dateOnly.setHours(0, 0, 0, 0); // Reset the time part to midnight
+
             const docRef = await addDoc(collection(db, "appointments"), {
+                
                 doctor,
                 patient,
-                date,
-                dateScheduled: Timestamp.fromDate(new Date(date)), // Convert JavaScript Date to Firestore Timestamp
+                date: Timestamp.fromDate(dateOnly), // Firestore Timestamp for the date
+                time: appointmentTime, // Save the selected time
                 reason,
             });
             Alert.alert(
@@ -83,6 +103,7 @@ const CreateAppointmentScreen = () => {
             );
         }
     };
+    
 
 
     return (
@@ -122,6 +143,12 @@ const CreateAppointmentScreen = () => {
                     />
                 )}
 
+                <RNPickerSelect
+                    onValueChange={(value) => setAppointmentTime(value)}
+                    items={generateTimeOptions()}
+                    placeholder={{ label: "Select a time", value: null }}
+                />
+
                 <Button title="Set Date" onPress={() => setShowDatePicker(true)} />
 
 
@@ -140,26 +167,26 @@ const CreateAppointmentScreen = () => {
 };
 const pickerSelectStyles = StyleSheet.create({
     inputIOS: {
-      fontSize: 16,
-      paddingVertical: 12,
-      paddingHorizontal: 10,
-      borderWidth: 1,
-      borderColor: 'gray',
-      borderRadius: 4,
-      color: 'black',
-      paddingRight: 30, // To ensure the dropdown icon doesn't overlap the text
+        fontSize: 16,
+        paddingVertical: 12,
+        paddingHorizontal: 10,
+        borderWidth: 1,
+        borderColor: 'gray',
+        borderRadius: 4,
+        color: 'black',
+        paddingRight: 30, // To ensure the dropdown icon doesn't overlap the text
     },
     inputAndroid: {
-      fontSize: 16,
-      paddingHorizontal: 10,
-      paddingVertical: 8,
-      borderWidth: 0.5,
-      borderColor: 'purple',
-      borderRadius: 8,
-      color: 'black',
-      paddingRight: 30, // To ensure the dropdown icon doesn't overlap the text
+        fontSize: 16,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        borderWidth: 0.5,
+        borderColor: 'purple',
+        borderRadius: 8,
+        color: 'black',
+        paddingRight: 30, // To ensure the dropdown icon doesn't overlap the text
     },
-  });
+});
 
 const styles = StyleSheet.create({
     container: {
@@ -180,7 +207,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginBottom: 10,
     },
-    
+
 });
 
 export default CreateAppointmentScreen;

@@ -1,48 +1,82 @@
-import React from 'react';
-import { View, Text, ScrollView, TextInput, Button, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View, Button, StyleSheet } from 'react-native';
+import { db } from '../firebaseConfig'; // Ensure you have your Firebase configuration correctly set up
+import { collection, addDoc, Timestamp } from 'firebase/firestore';
+
 
 
 const CreatePatientScreen = ({ navigation }) => {
+
+  const [name, setName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [address, setAddress] = useState('');
+  const [medicalHistory, setMedicalHistory] = useState('');
+
+
+
+  const savePatient = async () => {
+    try {
+      const docRef = await addDoc(collection(db, "patients"), {
+        name,
+        phoneNumber,
+        address,
+        medicalHistory,
+        // Include other fields as necessary
+      });
+      Alert.alert("Success", "Patient created successfully!", [
+        { text: "OK", onPress: () => navigation.goBack() } // Or reset form as needed
+      ]);
+    } catch (error) {
+      console.error("Error creating patient: ", error);
+      Alert.alert("Error", "There was a problem creating the patient. Please try again.", [
+        { text: "OK" }
+      ]);
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>Create New Patient</Text>
       
-      {/* Name Field */}
-      <TextInput style={styles.input} placeholder="Name" />
+      <TextInput
+        style={styles.input}
+        placeholder="Name"
+        value={name}
+        onChangeText={setName}
+      />
 
-      {/* Phone Number Field */}
-      <TextInput style={styles.input} placeholder="Phone Number" keyboardType="phone-pad" />
+      <TextInput
+        style={styles.input}
+        placeholder="Phone Number"
+        keyboardType="phone-pad"
+        value={phoneNumber}
+        onChangeText={setPhoneNumber}
+      />
 
-      
+      <TextInput
+        style={styles.input}
+        placeholder="Address"
+        multiline
+        value={address}
+        onChangeText={setAddress}
+      />
 
-      {/* Gender Selector */}
-      {/* You can use a library or custom implementation */}
+      <TextInput
+        style={styles.input}
+        placeholder="Medical History"
+        multiline
+        value={medicalHistory}
+        onChangeText={setMedicalHistory}
+      />
       
-      {/* Address Field */}
-      <TextInput style={styles.input} placeholder="Address" multiline />
+      {/* Include other inputs and buttons as necessary */}
 
-      {/* Medical History Field */}
-      <TextInput style={styles.input} placeholder="Medical History" multiline />
+      <Button title="Next" onPress={savePatient} />
       
-      {/* Select Date & Time (To be implemented) */}
-      
-      {/* Upload Prescription Button */}
-      <TouchableOpacity onPress={() => {/* Functionality to upload prescription */}}>
-        <Text>Upload Prescription</Text>
-      </TouchableOpacity>
-      
-      {/* Assign Doctor Button */}
-      <TouchableOpacity onPress={() => {/* Functionality to assign doctor */}}>
-        <Text>Assign Doctor</Text>
-      </TouchableOpacity>
-      
-      {/* Next Button */}
-      <Button title="Next" onPress={() => {/* Navigate to the next screen or action */}} />
-      
-    </ScrollView>
-  );
+    </ScrollView>)
 };
+
+
 
 const styles = StyleSheet.create({
   container: {
