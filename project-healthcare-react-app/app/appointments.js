@@ -1,38 +1,51 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Button, ScrollView, TextInput, Image, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Button, ScrollView, TextInput, TouchableOpacity, Image } from 'react-native';
+import { collection, getDocs, getDoc, doc } from 'firebase/firestore'; // Ensure you import `doc`
+import { db } from '../firebaseConfig';
 import BottomNavBar from '../components/BottomNavBar';
-
 
 const AppointmentsPage = () => {
   const [selectedTab, setSelectedTab] = useState('Upcoming');
   const [searchQuery, setSearchQuery] = useState('');
+  const [appointments, setAppointments] = useState([]);
 
-  const appointments = [
-    { id: 1, type: 'Upcoming', patientName: 'John Doe', age: 30, time: '2023-10-20T14:00:00Z' },
-    { id: 2, type: 'Missed', patientName: 'Jane Smith', age: 24, time: '2023-10-18T09:00:00Z' },
-    { id: 3, type: 'Completed', patientName: 'Mike Johnson', age: 12, time: '2023-10-15T16:00:00Z' },
-    { id: 4, type: 'Upcoming', patientName: 'Alice Brown', age:57, time: '2023-10-22T11:00:00Z' },
-    { id: 5, type: 'Completed', patientName: 'Chris Davis', age: 65, time: '2023-10-16T10:00:00Z' },
-  ].sort((a, b) => new Date(a.time) - new Date(b.time)); // Sort appointments by time
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      const querySnapshot = await getDocs(collection(db, "appointments"));
+      const appointmentsPromises = querySnapshot.docs.map(async (docSnapshot) => {
+        const data = docSnapshot.data();
+        
+        const patientRef = doc(db, "patients", data.patient);
+        const patientSnapshot = await getDoc(patientRef);
+        const patientData = patientSnapshot.data();
+        const appointmentDate = data.date?.toDate()?.toDateString() || 'N/A'; // Convert the 'date' Timestamp
 
+        return {
+          id: docSnapshot.id,
+          ...data,
+          patientName: patientData?.name, // Use optional chaining in case data is undefined
+          dob: patientData?.dob, 
+          time: data.time || 'N/A', // Use the 'time' string directly
+          date: appointmentDate
+        };
+      });
 
-  // Mock function to simulate navigation
-  const navigateToPatientPage = (patientId) => {
-    console.log(`Navigating to patient page with ID: ${patientId}`);
-    
-  };
-  
-  // Filter appointments based on selected tab and search query
-  const filteredAppointments = appointments.filter(appointment => {
-    return appointment.type === selectedTab &&
-           appointment.patientName.toLowerCase().includes(searchQuery.toLowerCase());
-  });
+      const fetchedAppointments = await Promise.all(appointmentsPromises);
+      setAppointments(fetchedAppointments.sort((a, b) => new Date(a.date) - new Date(b.date)));
+    };
+
+    fetchAppointments();
+  }, []);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.pageTitle}>Appointments</Text>
-        <TextInput placeholder="Search by name" onChangeText={setSearchQuery} style={styles.searchInput} />
+        <TextInput
+          placeholder="Search by name"
+          onChangeText={setSearchQuery}
+          style={styles.searchInput}
+        />
       </View>
 
       <View style={styles.tabs}>
@@ -42,26 +55,31 @@ const AppointmentsPage = () => {
       </View>
 
       <ScrollView style={styles.appointmentsList}>
-        {filteredAppointments.map((appointment) => (
-          <TouchableOpacity key={appointment.id} onPress={() => navigateToPatientPage(appointment.id)}>
-            <View style={styles.appointmentItem}>
-              <View style={styles.appointmentItemRow}>
-                <Image source={require('../assets/favicon.png')} style={styles.icon} />
-                <View style={styles.appointmentDetails}>
-                  <Text style={styles.appointmentTitle}>{appointment.patientName}</Text>
-                  <Text style={styles.appointmentText}>Age: {appointment.age}</Text>
-                  <Text style={styles.appointmentText}>{new Date(appointment.time).toLocaleString()}</Text>
+        {appointments.length > 0 ? (
+          appointments.map((appointment) => (
+            // TODO: add navigation to appointment details scren
+            <TouchableOpacity key={appointment.id} onPress={() => navigateToPatientPage(appointment.id)}>
+              <View style={styles.appointmentItem}>
+                <View style={styles.appointmentItemRow}>
+                  <Image source={require('../assets/favicon.png')} style={styles.icon} />
+                  <View style={styles.appointmentDetails}>
+                    <Text style={styles.appointmentTitle}>{appointment.patientName || "No Name"}</Text>
+                    <Text style={styles.appointmentText}>DOB: {appointment.dob}</Text>
+                    <Text style={styles.appointmentText}>Time: {appointment.time}</Text>
+                    <Text style={styles.appointmentText}>Date: {appointment.date}</Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+          ))
+        ) : (
+          <Text>No appointments found.</Text>
+        )}
       </ScrollView>
       <BottomNavBar />
     </View>
   );
-        };
-
+};
 const styles = StyleSheet.create({
   container: {
     flex: 1,

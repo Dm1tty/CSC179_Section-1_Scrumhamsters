@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View, Button, StyleSheet } from 'react-native';
-import { db } from '../firebaseConfig'; // Ensure you have your Firebase configuration correctly set up
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
-
+import { db } from '../firebaseConfig';
+import { collection, addDoc, Timestamp, getDocs } from 'firebase/firestore';
+import RNPickerSelect from 'react-native-picker-select';
 
 
 const CreatePatientScreen = ({ navigation }) => {
@@ -12,6 +12,23 @@ const CreatePatientScreen = ({ navigation }) => {
   const [address, setAddress] = useState('');
   const [medicalHistory, setMedicalHistory] = useState('');
 
+  const [primaryCareProvider, setPrimaryCareProvider] = useState('');
+  const [doctors, setDoctors] = useState([]);
+
+
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      const querySnapshot = await getDocs(collection(db, "doctors"));
+      const doctorsData = querySnapshot.docs.map(doc => ({
+        label: doc.data().name, // Assuming each doc has a 'name' field
+        value: doc.id, // Using Firestore document ID as value
+      }));
+      setDoctors(doctorsData);
+    };
+
+    fetchDoctors();
+  }, []);
 
 
   const savePatient = async () => {
@@ -21,7 +38,7 @@ const CreatePatientScreen = ({ navigation }) => {
         phoneNumber,
         address,
         medicalHistory,
-        // Include other fields as necessary
+        primaryCareProvider,
       });
       Alert.alert("Success", "Patient created successfully!", [
         { text: "OK", onPress: () => navigation.goBack() } // Or reset form as needed
@@ -37,7 +54,7 @@ const CreatePatientScreen = ({ navigation }) => {
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>Create New Patient</Text>
-      
+
       <TextInput
         style={styles.input}
         placeholder="Name"
@@ -60,7 +77,12 @@ const CreatePatientScreen = ({ navigation }) => {
         value={address}
         onChangeText={setAddress}
       />
-
+      <RNPickerSelect
+        onValueChange={(value) => setPrimaryCareProvider(value)}
+        items={doctors}
+        placeholder={{ label: "Select a Primary Care Provider", value: null }}
+        style={pickerSelectStyles} 
+      />
       <TextInput
         style={styles.input}
         placeholder="Medical History"
@@ -68,15 +90,36 @@ const CreatePatientScreen = ({ navigation }) => {
         value={medicalHistory}
         onChangeText={setMedicalHistory}
       />
-      
-      {/* Include other inputs and buttons as necessary */}
+
+     
 
       <Button title="Next" onPress={savePatient} />
-      
+
     </ScrollView>)
 };
 
-
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 4,
+    color: 'black',
+    paddingRight: 30, // to ensure the dropdown icon doesn't overlap the text
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 0.5,
+    borderColor: 'purple',
+    borderRadius: 8,
+    color: 'black',
+    paddingRight: 30, // to ensure the dropdown icon doesn't overlap the text
+  },
+});
 
 const styles = StyleSheet.create({
   container: {
