@@ -1,20 +1,51 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet ,Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { useNavigation } from '@react-navigation/native';
 
 const SignInScreen = () => {
+  const auth = getAuth();
   const [countryCode, setCountryCode] = useState('+91');
   const [mobileNumber, setMobileNumber] = useState('');
 
-  const handleSignIn = () => {
-    // Logic for sign-in goes here
-    console.log('Signing in with:', countryCode, mobileNumber);
-  };
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
+ 
   const handleGoogleSignIn = () => {
     // Logic for Google sign-in goes here
     console.log('Signing in with Google');
   };
 
+
+  // Sign-in function
+  const handleSignIn = () => {
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        // Signed in successfully
+        const user = userCredential.user;
+        console.log('User signed in: ', user.email);
+        // Navigate to your next screen or show success message here
+        navigation.navigate('Profile')
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log(errorCode, errorMessage);
+        // Handle errors here, such as showing an alert
+        alert(errorMessage);
+      });
+  };
+
+
+  const handleSignUp = () => {
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(userCredentials => {
+        console.log('Signed up with:', userCredentials.user.email);
+      })
+      .catch(error => alert(error.message));
+  };
+  
   return (
     <View style={styles.container}>
         <Image
@@ -22,6 +53,12 @@ const SignInScreen = () => {
         style={{ width: 26, height: 22 }}
       />
       <Text style={styles.title}>Sign In</Text>
+
+      <TextInput placeholder="Email" value={email} onChangeText={setEmail} />
+      <TextInput placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
+
+
+
       <Text style={styles.indecator} >Mobile Number</Text>
       <View style={styles.inputContainer}>
         <View style={styles.countryCodeContainer}>
@@ -41,6 +78,9 @@ const SignInScreen = () => {
           value={mobileNumber}
           onChangeText={text => setMobileNumber(text)}
         />
+
+
+
       </View>
       <TouchableOpacity style={styles.button} onPress={handleSignIn}>
         <Text style={styles.buttonText}>Continue</Text>

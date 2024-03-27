@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import firebase, { getApps } from 'firebase/app';
 
-import { db } from '../firebaseConfig'; // Adjust the import path
+import { db } from '../firebaseConfig';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
 
 
