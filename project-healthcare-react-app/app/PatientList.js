@@ -13,6 +13,8 @@ const PatientList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [patients, setPatients] = useState([]); // Updated to store fetched patients
 
+
+
   useEffect(() => {
     const fetchPatients = async () => {
       const querySnapshot = await getDocs(collection(db, "patients"));
