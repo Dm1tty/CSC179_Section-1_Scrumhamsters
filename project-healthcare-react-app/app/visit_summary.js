@@ -104,7 +104,7 @@ const VisitScreen = () => {
       )}
        <View style={styles.uploadContainer}>
        <Image
-        source={require('./assets/upload-icon.png')}
+        source={require('../assets/upload-icon.png')}
         style={{ width: 18, height: 18 ,marginEnd:20}}
       />
         {/* <Icon name="file" size={24} color="#1EB6B9" style={styles.uploadIcon} /> */}

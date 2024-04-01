@@ -19,7 +19,7 @@ const AppointSchreen = () => {
           <Icon name="arrow-left" size={20} color="#FFFFFF" />
         </TouchableOpacity>
         <View style={styles.circularImageView}>
-          <Image source={require('./assets/icon.png')} />
+          <Image source={require('../assets/icon.png')} />
         </View>
         <View style={styles.content}>
           <Text style={styles.name}>Anupama Gurung</Text>
@@ -33,7 +33,7 @@ const AppointSchreen = () => {
           <View style={styles.item}>
             {/* Icon image */}
             <Image
-              source={require('.assets/mark-icon.png')}
+              source={require('../assets/mark-icon.png')}
               style={styles.icon}
             />
             {/* Text */}
@@ -43,7 +43,7 @@ const AppointSchreen = () => {
           <View style={styles.item}>
             {/* Icon image */}
             <Image
-              source={require('./assest/delete-icon.png')}
+              source={require('../assets/delete-icon.png')}
               style={styles.icon}
             />
             {/* Text */}
@@ -53,7 +53,7 @@ const AppointSchreen = () => {
           <View style={styles.item}>
             {/* Icon image */}
             <Image
-              source={require('./assets/reschedule-icon.png')}
+              source={require('../assets/reschedule-icon.png')}
               style={styles.icon}
             />
             {/* Text */}
@@ -94,11 +94,11 @@ const AppointSchreen = () => {
       </View>
       <View style={styles.itemContainer}>
       <Image
-              source={require('./assets/prescription-icon.png')}
+              source={require('../assets/prescription-icon.png')}
               style={styles.document}
             />
         <Image
-              source={require('./assets/prescription-icon.png')}
+              source={require('../assets/prescription-icon.png')}
               style={styles.document}
             />
       </View>
