@@ -19,7 +19,7 @@ const AppointSchreen = () => {
           <Icon name="arrow-left" size={20} color="#FFFFFF" />
         </TouchableOpacity>
         <View style={styles.circularImageView}>
-          <Image source={require('./assets/icon.png')} />
+          <Image source={require('./assests/icon.png')} />
         </View>
         <View style={styles.content}>
           <Text style={styles.name}>Anupama Gurung</Text>
