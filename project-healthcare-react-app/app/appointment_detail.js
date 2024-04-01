@@ -19,7 +19,7 @@ const AppointSchreen = () => {
           <Icon name="arrow-left" size={20} color="#FFFFFF" />
         </TouchableOpacity>
         <View style={styles.circularImageView}>
-          <Image source={require('./assests/icon.png')} />
+          <Image source={require('./assets/icon.png')} />
         </View>
         <View style={styles.content}>
           <Text style={styles.name}>Anupama Gurung</Text>
@@ -43,7 +43,7 @@ const AppointSchreen = () => {
           <View style={styles.item}>
             {/* Icon image */}
             <Image
-              source={require('./assest/delete-icon.png')}
+              source={require('./assets/delete-icon.png')}
               style={styles.icon}
             />
             {/* Text */}
