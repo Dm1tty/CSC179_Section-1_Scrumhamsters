@@ -2,17 +2,24 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, Switch, Button } from 'react-native';
 import BottomNavBar from '../components/BottomNavBar'; 
-
+import { getAuth} from "firebase/auth";
 
 export default function Profile() {
   const [isAvailableToday, setIsAvailableToday] = useState(false);
-
+  const auth = getAuth();
   const handleToggleSwitch = () => setIsAvailableToday(previousState => !previousState);
 
   // Placeholder for logout function
   const handleLogout = () => {
     console.log('Logout action');
-    // Implement logout logic here
+    auth.signOut().then(() => {
+      // Sign-out successful.
+      console.log("User signed out successfully.");
+      navigation.navigate('signin')
+    }).catch((error) => {
+      // An error happened.
+      console.error("Error signing out:", error);
+    });
   };
 
   return (
