@@ -99,7 +99,7 @@ const SignInScreen = () => {
         </Text>{' '}
         and{' '}
         <Text style={styles.linkText} onPress={() => console.log('Privacy Policy clicked')}>
-          Privacy Policy
+          Privacy Policy!
         </Text>
       </Text>
     </View>
