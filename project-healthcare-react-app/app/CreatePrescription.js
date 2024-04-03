@@ -6,7 +6,7 @@ import { collection, addDoc, Timestamp, getDocs } from 'firebase/firestore';
 
 import RNPickerSelect from 'react-native-picker-select'; // Import the picker
 
-const CreatePerscription = ({ navigation }) => {
+const CreatePrescription = ({ navigation }) => {
     const [name, setName] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [address, setAddress] = useState('');
@@ -151,4 +151,4 @@ const CreatePerscription = ({ navigation }) => {
 
 
 
-export default CreatePerscription;
+export default CreatePrescription;

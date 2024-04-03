@@ -47,7 +47,7 @@ export default function Index() {
     // Cleanup subscription on unmount
     return () => unsubscribe();
   }, [navigation]);
-  
+
   return (
     <View style={styles.container}>
       <ScrollView>
@@ -79,8 +79,8 @@ export default function Index() {
       />
 
       <Button
-        title="Create a perscription"
-        onPress={() => navigation.navigate('CreatePerscrtiption')}
+        title="Create a prescription"
+        onPress={() => navigation.navigate('CreatePrescription')}
       />
 
       <BottomNavBar />
