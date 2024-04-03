@@ -77,6 +77,12 @@ export default function Index() {
         title="Create an Appointment"
         onPress={() => navigation.navigate('CreateAppointmentScreen')}
       />
+
+      <Button
+        title="Create a perscription"
+        onPress={() => navigation.navigate('CreatePerscrtiption')}
+      />
+
       <BottomNavBar />
     </View>
   );
