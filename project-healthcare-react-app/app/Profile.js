@@ -3,11 +3,15 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, Switch, Button } from 'react-native';
 import BottomNavBar from '../components/BottomNavBar'; 
 import { getAuth} from "firebase/auth";
+import { useNavigation } from '@react-navigation/native'; // Import useNavigation
+
+
 
 export default function Profile() {
   const [isAvailableToday, setIsAvailableToday] = useState(false);
   const auth = getAuth();
   const handleToggleSwitch = () => setIsAvailableToday(previousState => !previousState);
+  const navigation = useNavigation(); // Use the useNavigation hook
 
   // Placeholder for logout function
   const handleLogout = () => {
@@ -15,7 +19,11 @@ export default function Profile() {
     auth.signOut().then(() => {
       // Sign-out successful.
       console.log("User signed out successfully.");
-      navigation.navigate('signin')
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'SignIn' }], // Use the name of your sign-in screen
+      });
+      
     }).catch((error) => {
       // An error happened.
       console.error("Error signing out:", error);
@@ -29,12 +37,12 @@ export default function Profile() {
           style={styles.avatar}
           source={{uri: 'https://via.placeholder.com/150'}} // Replace with actual image URL
         />
-        <Text style={styles.name}>John Doe</Text> {/* Replace with actual name */}
+        <Text style={styles.name}>John Doe</Text>
       </View>
       
       <View style={styles.options}>
         <View style={styles.optionItem}>
-          <Text>Today's Availability</Text>
+        <Text style={styles.name}>Available Today</Text>
           <Switch
             trackColor={{ false: "#767577", true: "#81b0ff" }}
             thumbColor={isAvailableToday ? "#f5dd4b" : "#f4f3f4"}

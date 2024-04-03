@@ -8,6 +8,7 @@ import firebase, { getApps } from 'firebase/app';
 
 import { db } from '../firebaseConfig';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 
 
@@ -30,11 +31,23 @@ const appointments = [
 ];
 
 export default function Index() {
-  fetchCollectionData();
-
+ // fetchCollectionData();
+  const auth = getAuth();
   const navigation = useNavigation();
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        // No user is signed in, navigate to SignIn screen
+        navigation.navigate('SignIn'); // Replace 'SignIn' with your SignIn screen name
+      }
+      // If there is a user, the app stays on the current screen
+    });
 
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [navigation]);
+  
   return (
     <View style={styles.container}>
       <ScrollView>
@@ -70,12 +83,12 @@ export default function Index() {
 }
 
 // Function to fetch documents from a Firestore collection
-async function fetchCollectionData() {
-  const querySnapshot = await getDocs(collection(db, "patients"));
-  querySnapshot.forEach((doc) => {
-    console.log(`${doc.id} => ${JSON.stringify(doc.data())}`);
-  });
-}
+// async function fetchCollectionData() {
+//   const querySnapshot = await getDocs(collection(db, "patients"));
+//   querySnapshot.forEach((doc) => {
+//     console.log(`${doc.id} => ${JSON.stringify(doc.data())}`);
+//   });
+// }
 const styles = StyleSheet.create({
   container: {
     flex: 1,

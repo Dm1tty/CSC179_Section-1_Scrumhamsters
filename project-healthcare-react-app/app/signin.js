@@ -5,6 +5,8 @@ import { useNavigation } from '@react-navigation/native';
 
 const SignInScreen = () => {
   const auth = getAuth();
+  const navigation = useNavigation(); // Use the useNavigation hook
+
   const [countryCode, setCountryCode] = useState('+91');
   const [mobileNumber, setMobileNumber] = useState('');
 
@@ -38,13 +40,7 @@ const SignInScreen = () => {
   };
 
 
-  const handleSignUp = () => {
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(userCredentials => {
-        console.log('Signed up with:', userCredentials.user.email);
-      })
-      .catch(error => alert(error.message));
-  };
+ 
   
   return (
     <View style={styles.container}>
