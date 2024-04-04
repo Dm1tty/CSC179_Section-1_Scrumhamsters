@@ -34,11 +34,11 @@ export default function ProfileCreation() {
         }
         return false;
     };
-    
+
     const pickImage = async () => {
         const hasPermission = await getPermissionAsync();
         if (!hasPermission) return;
-    
+
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
             allowsEditing: true,
@@ -47,7 +47,7 @@ export default function ProfileCreation() {
         });
         console.log(result); // Log the full result to inspect it
 
-    
+
         if (!result.cancelled) {
             const imageUri = result.assets[0].uri; // Access the uri from the first item in the assets array
             setImage(imageUri);
@@ -57,7 +57,7 @@ export default function ProfileCreation() {
             console.log("Image picking was cancelled");
         }
     };
-    
+
 
     const uriToBlob = async (uri) => {
         const response = await fetch(uri);
@@ -73,7 +73,7 @@ export default function ProfileCreation() {
             const blob = await uriToBlob(imageUri);
             const storage = getStorage();
             const storageRef = ref(storage, `profileImages/${auth.currentUser.uid}`);
-            
+
 
             await uploadBytes(storageRef, blob); // Ensure this promise resolves
             console.log('Image uploaded successfully');
@@ -85,7 +85,7 @@ export default function ProfileCreation() {
             throw error; // Rethrow error to catch it outside
         }
     };
-    
+
     const handleSaveProfile = async () => {
         console.log("handleSaveProfile called");
         let imageUrl = null;
@@ -97,7 +97,10 @@ export default function ProfileCreation() {
                 return; // Exit the function if image upload fails
             }
         }
-    
+
+        // Construct the 'name' field using firstName and the first letter of lastName
+        const name = `${firstName} ${lastName.charAt(0)}.`;
+
         const userProfile = {
             firstName,
             lastName,
@@ -106,8 +109,9 @@ export default function ProfileCreation() {
             gender: gender ? 'Male' : 'Female',
             specialistType,
             image: imageUrl, // Use the uploaded image URL or null if no image was selected
+            name, // Add the constructed 'name' to the userProfile object
         };
-    
+
         try {
             await setDoc(doc(db, "doctors", auth.currentUser.uid), userProfile);
             alert('Profile saved successfully');
@@ -117,7 +121,7 @@ export default function ProfileCreation() {
             alert(`Error saving profile: ${error.message}`);
         }
     };
-    
+
 
 
     return (

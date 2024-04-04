@@ -1,17 +1,35 @@
-// Profile.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, Switch, Button } from 'react-native';
-import BottomNavBar from '../components/BottomNavBar'; 
-import { getAuth} from "firebase/auth";
+import BottomNavBar from '../components/BottomNavBar';
+import { getAuth } from "firebase/auth";
+import { doc, getDoc, getFirestore } from "firebase/firestore"; // Import Firestore functions
 import { useNavigation } from '@react-navigation/native'; // Import useNavigation
-
-
 
 export default function Profile() {
   const [isAvailableToday, setIsAvailableToday] = useState(false);
+  const [profileData, setProfileData] = useState({}); // State to hold fetched profile data
   const auth = getAuth();
-  const handleToggleSwitch = () => setIsAvailableToday(previousState => !previousState);
+  const db = getFirestore(); // Initialize Firestore
   const navigation = useNavigation(); // Use the useNavigation hook
+
+  useEffect(() => {
+    // Function to fetch profile data
+    const fetchProfileData = async () => {
+      if (!auth.currentUser) return; // Exit if not logged in
+      const docRef = doc(db, "doctors", auth.currentUser.uid); // Reference to the user's document
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        setProfileData(docSnap.data()); // Set the fetched data to state
+      } else {
+        console.log("No such document!");
+      }
+    };
+
+    fetchProfileData();
+  }, [auth.currentUser]); // Depend on currentUser to refetch if it changes
+
+  const handleToggleSwitch = () => setIsAvailableToday(previousState => !previousState);
 
   // Placeholder for logout function
   const handleLogout = () => {
@@ -21,7 +39,7 @@ export default function Profile() {
       console.log("User signed out successfully.");
       navigation.reset({
         index: 0,
-        routes: [{ name: 'SignIn' }], // Use the name of your sign-in screen
+        routes: [{ name: 'signin' }], // Use the name of your sign-in screen
       });
       
     }).catch((error) => {
@@ -35,14 +53,15 @@ export default function Profile() {
       <View style={styles.upperSection}>
         <Image
           style={styles.avatar}
-          source={{uri: 'https://via.placeholder.com/150'}} // Replace with actual image URL
+          source={{uri: profileData.image || 'https://via.placeholder.com/150'}} // Use fetched image URL or a placeholder
         />
-        <Text style={styles.name}>John Doe</Text>
+        <Text style={styles.name}>{profileData.firstName} {profileData.lastName}</Text>
+        {/* Display the fetched name */}
       </View>
       
       <View style={styles.options}>
         <View style={styles.optionItem}>
-        <Text style={styles.name}>Available Today</Text>
+          <Text style={styles.optionText}>Available Today</Text>
           <Switch
             trackColor={{ false: "#767577", true: "#81b0ff" }}
             thumbColor={isAvailableToday ? "#f5dd4b" : "#f4f3f4"}
@@ -67,7 +86,6 @@ export default function Profile() {
       
       <BottomNavBar />
     </View>
-    
   );
 }
 
