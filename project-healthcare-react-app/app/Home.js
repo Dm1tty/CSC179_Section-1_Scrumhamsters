@@ -16,6 +16,7 @@ export default function Index() {
   const navigation = useNavigation();
 
   useEffect(() => {
+    
     const fetchDoctorData = async () => {
       setLoading(true); // Start loading
 

@@ -10,8 +10,8 @@ export default function BottomNavBar() {
   return (
     <View style={styles.navContainer}>
       <Link href="/" style={styles.navLink}>Home</Link>
-      <Link href="/PatientList" style={styles.navLink}>Patient List</Link>
-      <Link href="/appointments" style={styles.navLink}>Appointments</Link>
+      <Link href="/Patients" style={styles.navLink}>Patients</Link>
+      <Link href="/Appointments" style={styles.navLink}>Appointments</Link>
       <Link href="/Profile" style={styles.navLink}>Account</Link>
       <Link href="/ContactPage" style={styles.navLink}>Contact Us</Link>
     </View>
