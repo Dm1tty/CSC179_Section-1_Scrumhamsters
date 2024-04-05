@@ -1,64 +1,106 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, Switch, Button } from 'react-native';
-import BottomNavBar from '../components/BottomNavBar';
+import { Alert, View, Text, StyleSheet, Image, Switch, Button, TouchableOpacity } from 'react-native';
+
 import { getAuth } from "firebase/auth";
-import { doc, getDoc, getFirestore } from "firebase/firestore"; // Import Firestore functions
-import { useNavigation } from '@react-navigation/native'; // Import useNavigation
+import { doc, getDoc, getFirestore, updateDoc } from "firebase/firestore";
+import * as ImagePicker from 'expo-image-picker';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import BottomNavBar from '../components/BottomNavBar';
+import { useNavigation } from '@react-navigation/native';
 
 export default function Profile() {
   const [isAvailableToday, setIsAvailableToday] = useState(false);
-  const [profileData, setProfileData] = useState({}); // State to hold fetched profile data
+  const [profileData, setProfileData] = useState({});
   const auth = getAuth();
-  const db = getFirestore(); // Initialize Firestore
-  const navigation = useNavigation(); // Use the useNavigation hook
+  const db = getFirestore();
+  const navigation = useNavigation();
 
   useEffect(() => {
-    // Function to fetch profile data
     const fetchProfileData = async () => {
-      if (!auth.currentUser) return; // Exit if not logged in
-      const docRef = doc(db, "doctors", auth.currentUser.uid); // Reference to the user's document
+      if (!auth.currentUser) return;
+      const docRef = doc(db, "doctors", auth.currentUser.uid);
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        setProfileData(docSnap.data()); // Set the fetched data to state
+        setProfileData(docSnap.data());
       } else {
         console.log("No such document!");
       }
     };
 
     fetchProfileData();
-  }, [auth.currentUser]); // Depend on currentUser to refetch if it changes
+  }, [auth.currentUser]);
 
   const handleToggleSwitch = () => setIsAvailableToday(previousState => !previousState);
 
-  // Placeholder for logout function
   const handleLogout = () => {
-    console.log('Logout action');
     auth.signOut().then(() => {
-      // Sign-out successful.
-      console.log("User signed out successfully.");
       navigation.reset({
         index: 0,
-        routes: [{ name: 'signin' }], // Use the name of your sign-in screen
+        routes: [{ name: 'signin' }],
       });
-      
     }).catch((error) => {
-      // An error happened.
       console.error("Error signing out:", error);
     });
   };
 
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.cancelled) {
+      const imageUri = result.assets[0].uri;
+      uploadImageAndGetURL(imageUri).then((imageUrl) => {
+        updateProfileImageUrl(imageUrl);
+      }).catch((error) => {
+        console.error("Error uploading image:", error);
+      });
+    }
+  };
+
+  const uploadImageAndGetURL = async (imageUri) => {
+    try {
+      const blob = await (await fetch(imageUri)).blob();
+      const storageRef = ref(getStorage(), `profile_images/${auth.currentUser.uid}_${Date.now()}`);
+      await uploadBytes(storageRef, blob);
+      const downloadURL = await getDownloadURL(storageRef);
+      Alert.alert("Upload Successful", "Your image has been successfully uploaded.");
+      return downloadURL;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      Alert.alert("Upload Failed", "There was an issue uploading your image.");
+    }
+  };
+
+  const updateProfileImageUrl = async (imageUrl) => {
+    try {
+      const userDocRef = doc(db, "doctors", auth.currentUser.uid);
+      await updateDoc(userDocRef, {
+        image: imageUrl,
+      });
+      setProfileData((prev) => ({ ...prev, image: imageUrl }));
+    } catch (error) {
+      console.error("Error updating profile image:", error);
+      Alert.alert("Update Failed", "Failed to update profile image.");
+    }
+  };
   return (
     <View style={styles.container}>
       <View style={styles.upperSection}>
         <Image
           style={styles.avatar}
-          source={{uri: profileData.image || 'https://via.placeholder.com/150'}} // Use fetched image URL or a placeholder
+          source={{ uri: profileData.image || 'https://via.placeholder.com/150' }}
         />
         <Text style={styles.name}>{profileData.firstName} {profileData.lastName}</Text>
-        {/* Display the fetched name */}
+        <TouchableOpacity onPress={pickImage} style={styles.imageUploadBtn}>
+          <Text>Change Profile Image</Text>
+        </TouchableOpacity>
       </View>
-      
+
       <View style={styles.options}>
         <View style={styles.optionItem}>
           <Text style={styles.optionText}>Available Today</Text>
@@ -70,11 +112,11 @@ export default function Profile() {
             value={isAvailableToday}
           />
         </View>
-        
+
         <Button
           title="Upcoming Availability"
           onPress={() => console.log('Navigate to Upcoming Availability')}
-          // Implement navigation to Upcoming Availability page
+          color="#FF6347"
         />
 
         <Button
@@ -83,7 +125,7 @@ export default function Profile() {
           color="#FF6347"
         />
       </View>
-      
+
       <BottomNavBar />
     </View>
   );
@@ -93,9 +135,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingTop: 20,
-    backgroundColor: '#fff',
+    justifyContent: 'center',
   },
   upperSection: {
     alignItems: 'center',
@@ -107,17 +147,20 @@ const styles = StyleSheet.create({
     borderRadius: 75,
   },
   name: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     marginTop: 10,
   },
   options: {
-    width: '80%',
+    width: '100%',
+    alignItems: 'center',
   },
   optionItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
+  },
+  optionText: {
+    marginRight: 10,
   },
 });
