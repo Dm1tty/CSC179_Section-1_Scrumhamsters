@@ -20,7 +20,7 @@ export default function SignUpScreen() {
 
   // Handler to navigate to the SignIn screen
   const navigateToSignIn = () => {
-    navigation.navigate('SignIn'); // Replace 'SignIn' with your actual SignIn screen route name
+    navigation.navigate('signin'); // Replace 'SignIn' with your actual SignIn screen route name
   };
 
   return (

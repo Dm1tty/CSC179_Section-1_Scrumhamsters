@@ -28,7 +28,10 @@ const SignInScreen = () => {
         const user = userCredential.user;
         console.log('User signed in: ', user.email);
         // Navigate to your next screen or show success message here
-        navigation.navigate('Profile')
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Profile' }],
+        });
       })
       .catch((error) => {
         const errorCode = error.code;

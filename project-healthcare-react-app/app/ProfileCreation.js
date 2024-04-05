@@ -115,7 +115,10 @@ export default function ProfileCreation() {
         try {
             await setDoc(doc(db, "doctors", auth.currentUser.uid), userProfile);
             alert('Profile saved successfully');
-            navigation.navigate('Profile')
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Profile' }],
+              });
 
         } catch (error) {
             alert(`Error saving profile: ${error.message}`);
@@ -140,6 +143,7 @@ export default function ProfileCreation() {
             <Picker selectedValue={specialistType} onValueChange={(itemValue, itemIndex) => setSpecialistType(itemValue)} style={styles.picker}>
                 <Picker.Item label="PA" value="PA" />
                 <Picker.Item label="Doctor" value="Doctor" />
+                <Picker.Item label="Nurse" value="Nurse" />
             </Picker>
             <Button title="Save Profile" onPress={handleSaveProfile} />
         </View>

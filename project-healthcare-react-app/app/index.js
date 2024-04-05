@@ -9,81 +9,75 @@ import { db } from '../firebaseConfig';
 export default function Index() {
   const [doctorName, setDoctorName] = useState('');
   const [appointments, setAppointments] = useState([]);
-  const [doctorImage, setDoctorImage] = useState('https://via.placeholder.com/150'); // Default image
-  const [loading, setLoading] = useState(true); // Loading indicator state
+  const [doctorImage, setDoctorImage] = useState('https://via.placeholder.com/150');
+  const [loading, setLoading] = useState(true);
 
   const auth = getAuth();
   const navigation = useNavigation();
 
   useEffect(() => {
-    
-    const fetchDoctorData = async () => {
-      setLoading(true); // Start loading
-
-      const user = auth.currentUser;
-      if (!user) {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        await fetchDoctorData(user);
+      } else {
+        // No user is signed in, redirect to the SignUp screen
         navigation.reset({
           index: 0,
           routes: [{ name: 'SignUp' }],
         });
-        return;
-      }
-
-      const docRef = doc(db, "doctors", user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setDoctorName(docSnap.data().name);
-        setDoctorImage(docSnap.data().image || 'https://via.placeholder.com/150'); // Fetch and set user's picture
-      } else {
-        console.log("No such document for doctor's name!");
-      }
-
-      const q = query(collection(db, "appointments"), where("doctor", "==", user.uid));
-      const querySnapshot = await getDocs(q);
-      const appointmentsWithPatientInfo = await Promise.all(querySnapshot.docs.map(async (docSnapshot) => {
-        const appointment = docSnapshot.data();
-        const patientRef = doc(db, "patients", appointment.patient);
-        const patientSnap = await getDoc(patientRef);
-
-        if (patientSnap.exists()) {
-          const patientData = patientSnap.data();
-          return {
-            ...appointment,
-            patientName: patientData.name,
-            patientGender: patientData.gender,
-            patientDOB: patientData.dob,
-          };
-        }
-        return appointment;
-      }));
-
-      setAppointments(appointmentsWithPatientInfo);
-      setLoading(false); // End loading
-    };
-
-    const unsubscribe = onAuthStateChanged(auth, user => {
-      if (user) {
-        fetchDoctorData();
       }
     });
 
     return () => unsubscribe();
-  }, [auth, navigation]);
+  }, [navigation]);
+
+  async function fetchDoctorData(user) {
+    setLoading(true);
+
+    const docRef = doc(db, "doctors", user.uid);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      setDoctorName(docSnap.data().name);
+      setDoctorImage(docSnap.data().image || 'https://via.placeholder.com/150');
+    } else {
+      console.log("No such document for doctor's name!");
+    }
+
+    const q = query(collection(db, "appointments"), where("doctor", "==", user.uid));
+    const querySnapshot = await getDocs(q);
+    const appointmentsWithPatientInfo = await Promise.all(querySnapshot.docs.map(async (docSnapshot) => {
+      const appointment = docSnapshot.data();
+      const patientRef = doc(db, "patients", appointment.patient);
+      const patientSnap = await getDoc(patientRef);
+
+      if (patientSnap.exists()) {
+        const patientData = patientSnap.data();
+        return {
+          ...appointment,
+          patientName: patientData.name,
+          patientGender: patientData.gender,
+          patientDOB: patientData.dob,
+        };
+      }
+      return appointment;
+    }));
+
+    setAppointments(appointmentsWithPatientInfo);
+    setLoading(false);
+  }
 
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
 
-  // Converts Firestore timestamp to a readable string
   const formatDate = (timestamp) => {
     if (!timestamp) return '';
-    const date = timestamp.toDate(); // Convert to JavaScript Date object
-    return date.toDateString(); 
+    const date = timestamp.toDate();
+    return date.toDateString();
   };
 
   const calculateAge = (dob) => {
     const parts = dob.split("/");
-    // Note: months are 0-based in JavaScript Date, hence the -1 on month
     const birthday = new Date(parts[2], parts[0] - 1, parts[1]);
     const today = new Date();
     let age = today.getFullYear() - birthday.getFullYear();
@@ -92,7 +86,7 @@ export default function Index() {
         age--;
     }
     return age;
-};
+  };
 
   return (
   <View style={styles.container}>
