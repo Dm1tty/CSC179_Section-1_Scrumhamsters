@@ -3,7 +3,10 @@ import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { Link } from 'expo-router';
 
+
+
 export default function BottomNavBar() {
+
   return (
     <View style={styles.navContainer}>
       <Link href="/" style={styles.navLink}>Home</Link>
@@ -20,6 +23,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     backgroundColor: '#ddd',
+    width: '100%', // Use the full width of the device
     padding: 10,
   },
   navLink: {
