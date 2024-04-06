@@ -3,10 +3,11 @@ import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View, Button, Sty
 import { db } from '../firebaseConfig';
 import { collection, addDoc, Timestamp, getDocs } from 'firebase/firestore';
 import RNPickerSelect from 'react-native-picker-select';
+import { useNavigation } from '@react-navigation/native';
 
+const CreatePatientScreen = ({  }) => {
 
-const CreatePatientScreen = ({ navigation }) => {
-
+  const navigation = useNavigation(); // Use the useNavigation hook
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [address, setAddress] = useState('');
