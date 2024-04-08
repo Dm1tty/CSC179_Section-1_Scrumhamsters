@@ -72,7 +72,7 @@ export default function ProfileCreation() {
         try {
             const blob = await uriToBlob(imageUri);
             const storage = getStorage();
-            const storageRef = ref(storage, `profile_Images/${auth.currentUser.uid}`);
+            const storageRef = ref(storage, `profile_images/${auth.currentUser.uid}`);
 
 
             await uploadBytes(storageRef, blob); // Ensure this promise resolves

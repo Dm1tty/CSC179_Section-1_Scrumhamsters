@@ -23,8 +23,8 @@ const AppointmentsPage = () => {
         return {
           id: docSnapshot.id,
           ...data,
-          patientName: patientData?.name, // Use optional chaining in case data is undefined
-          dob: patientData?.dob, 
+          patientName: patientData?.firstName + ", " + patientData.lastName, // Use optional chaining in case data is undefined
+          dob: patientData?.dateOfBirth, 
           time: data.time || 'N/A', // Use the 'time' string directly
           date: appointmentDate
         };

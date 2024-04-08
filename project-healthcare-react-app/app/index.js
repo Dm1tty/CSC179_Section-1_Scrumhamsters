@@ -54,9 +54,10 @@ export default function Index() {
         const patientData = patientSnap.data();
         return {
           ...appointment,
-          patientName: patientData.name,
+          patientName: patientData.lastName + ", " + patientData.firstName,
           patientGender: patientData.gender,
-          patientDOB: patientData.dob,
+          patientDOB: patientData.dateOfBirth,
+          patientPicture: patientData.image
         };
       }
       return appointment;
@@ -77,16 +78,21 @@ export default function Index() {
   };
 
   const calculateAge = (dob) => {
-    const parts = dob.split("/");
-    const birthday = new Date(parts[2], parts[0] - 1, parts[1]);
+    if (!dob) return 'N/A'; // Handle missing dob gracefully
+  
+    // Explicitly parse the MM/DD/YYYY format
+    const parts = dob.split('/');
+    const birthDate = new Date(parts[2], parts[0] - 1, parts[1]); // Note: months are 0-indexed
+  
     const today = new Date();
-    let age = today.getFullYear() - birthday.getFullYear();
-    const m = today.getMonth() - birthday.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthday.getDate())) {
-        age--;
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
     }
     return age;
   };
+  
 
   return (
   <View style={styles.container}>
@@ -97,7 +103,7 @@ export default function Index() {
       <View style={styles.table}>
         {appointments.map((appointment, index) => (
           <View key={index} style={styles.row}>
-            <Image source={{ uri: appointment.patientPictureUrl || 'https://via.placeholder.com/150' }} style={styles.rowImage} />
+            <Image source={{ uri: appointment.patientPicture || 'https://via.placeholder.com/150' }} style={styles.rowImage} />
             <View style={styles.rowTextContainer}>
               <Text style={styles.rowText}>Patient: {appointment.patientName}</Text>
               <Text style={styles.rowText}>Gender: {appointment.patientGender}</Text>

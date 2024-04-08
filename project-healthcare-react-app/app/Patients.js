@@ -11,16 +11,14 @@ import { collection, getDocs } from 'firebase/firestore';
 
 const PatientList = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [patients, setPatients] = useState([]); // Updated to store fetched patients
-
-
+  const [patients, setPatients] = useState([]);
 
   useEffect(() => {
     const fetchPatients = async () => {
       const querySnapshot = await getDocs(collection(db, "patients"));
       const patientsData = querySnapshot.docs.map(doc => ({
-        id: doc.id, // Use Firestore document ID as unique key
-        ...doc.data(), // Spread operator to include all other patient fields
+        id: doc.id,
+        ...doc.data(),
       }));
       setPatients(patientsData);
     };
@@ -31,32 +29,56 @@ const PatientList = () => {
   const navigation = useNavigation();
 
   const navigateToPatientPage = (patientId, patientName) => {
-    
     navigation.navigate('PatientDetail', { id: patientId, name: patientName });
   };
 
-  // Filter patients based on search query
-  const filteredPatients = patients.filter(patient =>
-    patient.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const calculateAge = (dob) => {
+    if (!dob) return 'N/A'; // Handle missing dob gracefully
+  
+    // Explicitly parse the MM/DD/YYYY format
+    const parts = dob.split('/');
+    const birthDate = new Date(parts[2], parts[0] - 1, parts[1]); // Note: months are 0-indexed
+  
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+  
+
+  const filteredPatients = patients.filter(patient => {
+    const fullName = [patient.firstName, patient.lastName]
+      .filter(Boolean) // Remove undefined or falsy values
+      .join(" ") // Join the remaining values into a full name string
+      .toLowerCase(); // Convert the full name string to lowercase
+  
+    return fullName.includes(searchQuery.toLowerCase());
+  });
 
   return (
     <View style={styles.container}>
-      {/* Header and search input remain unchanged */}
-      
       <ScrollView style={styles.patientList}>
-        {filteredPatients.map((patient) => (
-          <TouchableOpacity key={patient.id} onPress={() => navigateToPatientPage(patient.id, patient.name)}>
-            <View style={styles.patientItem}>
-              <Image source={require('../assets/favicon.png')} style={styles.icon} />
-              <View style={styles.patientDetails}>
-                <Text style={styles.patientName}>{patient.name}</Text>
-                <Text style={styles.patientText}>DOB: {patient.dob}</Text>
-                <Text>View Patient</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+      {filteredPatients.map((patient) => (
+  <TouchableOpacity key={patient.id} onPress={() => navigateToPatientPage(patient.id, `${patient.firstName} ${patient.lastName}`)}>
+    <View style={styles.patientItem}>
+      {patient.image ? (
+        <Image source={{ uri: patient.image }} style={styles.icon} />
+      ) : (
+        // Fallback image if patient.image does not exist
+        <Image source={require('../assets/favicon.png')} style={styles.icon} />
+      )}
+      <View style={styles.patientDetails}>
+        <Text style={styles.patientName}>{`${patient.lastName}, ${patient.firstName}`}</Text>
+        <Text style={styles.patientText}>Age: {calculateAge(patient.dateOfBirth)}</Text>
+        <Text style={styles.patientText}>Phone: {patient.phoneResidence || patient.mobilePhone}</Text>
+      </View>
+    </View>
+  </TouchableOpacity>
+))}
+
       </ScrollView>
       <BottomNavBar />
     </View>
