@@ -1,6 +1,6 @@
 // ProfileCreation.js
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, Switch, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, Switch, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { db } from '../firebaseConfig';
 import { collection, doc, setDoc } from 'firebase/firestore';
@@ -10,15 +10,18 @@ import { getStorage, ref, uploadBytes } from 'firebase/storage';
 import { getDownloadURL } from 'firebase/storage';
 import { Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { makeStyles, useTheme } from '@rneui/themed';
+import { Button, Input } from '@rneui/themed';
 
 
 export default function ProfileCreation() {
     const auth = getAuth();
+    const styles = useStyles();
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [email, setEmail] = useState(auth.currentUser?.email || '');
-    const [gender, setGender] = useState(true); // true for Male, false for Female
+    const [gender, setGender] = useState('Male');
     const [specialistType, setSpecialistType] = useState('');
     const [image, setImage] = useState(null);
     const navigation = useNavigation(); // Use the useNavigation hook
@@ -106,7 +109,7 @@ export default function ProfileCreation() {
             lastName,
             phoneNumber,
             email,
-            gender: gender ? 'Male' : 'Female',
+            gender,
             specialistType,
             image: imageUrl, // Use the uploaded image URL or null if no image was selected
             name, // Add the constructed 'name' to the userProfile object
@@ -130,57 +133,96 @@ export default function ProfileCreation() {
     return (
         <View style={styles.container}>
             <TouchableOpacity onPress={pickImage}>
-                {image ? <Image source={{ uri: image }} style={{ width: 200, height: 200 }} /> : <View style={styles.placeholder}><Text>Upload Image</Text></View>}
+                {image ? <Image source={{ uri: image }} style={styles.image} /> : <View style={styles.placeholder}><Text>Upload Image</Text></View>}
             </TouchableOpacity>
-            <TextInput put placeholder="First Name" value={firstName} onChangeText={setFirstName} style={styles.input} />
-            <TextInput placeholder="Last Name" value={lastName} onChangeText={setLastName} style={styles.input} />
-            <TextInput placeholder="Phone Number" value={phoneNumber} onChangeText={setPhoneNumber} style={styles.input} />
-            <TextInput placeholder="Email Address" value={email} onChangeText={setEmail} style={styles.input} />
-            <View style={styles.switchContainer}>
-                <Text>{gender ? 'Male' : 'Female'}</Text>
-                <Switch value={gender} onValueChange={setGender} />
+            <Input put label="First Name:" labelStyle={styles.label} value={firstName} onChangeText={setFirstName} style={styles.input} />
+            <Input label="Last Name:" labelStyle={styles.label} value={lastName} onChangeText={setLastName} style={styles.input} />
+            <Input label="Phone Number:" labelStyle={styles.label} value={phoneNumber} onChangeText={setPhoneNumber} style={styles.input} />
+            <Input label="Email Address:" labelStyle={styles.label} value={email} onChangeText={setEmail} style={styles.input} />
+            <View style={{ paddingLeft: 10, paddingBottom: 10 }}>
+                <Text style={styles.label}>Gender:</Text>
             </View>
-            <Picker selectedValue={specialistType} onValueChange={(itemValue, itemIndex) => setSpecialistType(itemValue)} style={styles.picker}>
+            <Picker selectedValue={gender} onValueChange={(itemValue, itemIndex) => setGender(itemValue)} style={styles.picker} itemStyle={styles.pickerItem}>
+                <Picker.Item label="Male" value="Male" />
+                <Picker.Item label="Female" value="Female" />
+            </Picker>
+            <View style={{ padding: 10 }}>
+                <Text style={styles.label}>Specialist Type:</Text>
+            </View>
+            <Picker selectedValue={specialistType} onValueChange={(itemValue, itemIndex) => setSpecialistType(itemValue)} style={styles.picker} itemStyle={styles.pickerItem}>
                 <Picker.Item label="PA" value="PA" />
                 <Picker.Item label="Doctor" value="Doctor" />
                 <Picker.Item label="Nurse" value="Nurse" />
             </Picker>
-            <Button title="Save Profile" onPress={handleSaveProfile} />
+            <Button buttonStyle={styles.saveButton} titleStyle={styles.saveButtonTitle} title="Save Profile" onPress={handleSaveProfile} />
         </View>
     );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((theme) => ({
     container: {
+        backgroundColor: theme.colors.primary,
         flex: 1,
         justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#1EB6B9',
-        padding: 20,
+        padding: 10,
+        margin: 0,
     },
     input: {
         width: 300,
+        color: "#fff",
+        fontSize: 12,
+        height: 7,
         padding: 10,
-        margin: 10,
-        backgroundColor: 'white',
-        borderRadius: 5,
+        margin: 5,
+        backgroundColor: '#333',
+        borderRadius: 30,
+    },
+    label: {
+        color: "#fff",
+        textAlign: "left",
+        fontWeight: "bold",
+        fontSize: 14,
+        paddingLeft: 10,
     },
     placeholder: {
-        width: 200,
-        height: 200,
+        width: 100,
+        height: 100,
         backgroundColor: '#ddd',
         justifyContent: 'center',
+        alignSelf: 'center',
         alignItems: 'center',
         margin: 10,
     },
-    switchContainer: {
-        flexDirection: 'row',
+    image: {
+        width: 100,
+        height: 100,
+        alignSelf: 'center',
         alignItems: 'center',
         margin: 10,
     },
     picker: {
+        alignSelf: "center",
+        backgroundColor: '#333',
+        color: '#fff',
         width: 300,
-        backgroundColor: 'white',
-        borderRadius: 5,
+        borderRadius: 30,
+        fontSize: 12,
     },
-});
+    pickerItem: {
+        color: '#fff',
+        backgroundColor: '#333',
+        borderRadius: 30,
+        fontSize: 12,
+    },
+    saveButton: {
+        margin: 20,
+        padding: 0,
+        borderRadius: 10,
+        backgroundColor: '#fff',
+    },
+    saveButtonTitle: {
+        margin: 10,
+        padding: 0,
+        color: theme.colors.primary,
+    }
+}));
