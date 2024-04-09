@@ -273,12 +273,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
+    
   },
   patientImage: {
-    width: 100, // Adjust as needed
-    height: 100, // Adjust as needed
-    borderRadius: 50, // For a rounded image
+    width: 150, // Adjust as needed
+    height: 150, // Adjust as needed
+    borderRadius: 75, // For a rounded image
     marginVertical: 10, // Optional: add some vertical spacing
+    alignItems: 'center',
+    
   },
   input: {
     borderWidth: 1,

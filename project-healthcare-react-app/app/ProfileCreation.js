@@ -1,6 +1,6 @@
 // ProfileCreation.js
 import React, { useState } from 'react';
-import { View, Text, Switch, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, Switch, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { db } from '../firebaseConfig';
 import { collection, doc, setDoc } from 'firebase/firestore';
@@ -121,7 +121,7 @@ export default function ProfileCreation() {
             navigation.reset({
                 index: 0,
                 routes: [{ name: 'Profile' }],
-              });
+            });
 
         } catch (error) {
             alert(`Error saving profile: ${error.message}`);
@@ -131,11 +131,14 @@ export default function ProfileCreation() {
 
 
     return (
-        <View style={styles.container}>
+        <ScrollView
+            style={styles.container} // Apply styles affecting the ScrollView's container here
+            contentContainerStyle={styles.contentContainer} // Apply styles affecting the layout of children here
+        >
             <TouchableOpacity onPress={pickImage}>
                 {image ? <Image source={{ uri: image }} style={styles.image} /> : <View style={styles.placeholder}><Text>Upload Image</Text></View>}
             </TouchableOpacity>
-            <Input put label="First Name:" labelStyle={styles.label} value={firstName} onChangeText={setFirstName} style={styles.input} />
+            <Input label="First Name:" labelStyle={styles.label} value={firstName} onChangeText={setFirstName} style={styles.input} />
             <Input label="Last Name:" labelStyle={styles.label} value={lastName} onChangeText={setLastName} style={styles.input} />
             <Input label="Phone Number:" labelStyle={styles.label} value={phoneNumber} onChangeText={setPhoneNumber} style={styles.input} />
             <Input label="Email Address:" labelStyle={styles.label} value={email} onChangeText={setEmail} style={styles.input} />
@@ -155,7 +158,7 @@ export default function ProfileCreation() {
                 <Picker.Item label="Nurse" value="Nurse" />
             </Picker>
             <Button buttonStyle={styles.saveButton} titleStyle={styles.saveButtonTitle} title="Save Profile" onPress={handleSaveProfile} />
-        </View>
+        </ScrollView>
     );
 }
 
@@ -163,7 +166,6 @@ const useStyles = makeStyles((theme) => ({
     container: {
         backgroundColor: theme.colors.primary,
         flex: 1,
-        justifyContent: 'center',
         padding: 10,
         margin: 0,
     },
@@ -224,5 +226,9 @@ const useStyles = makeStyles((theme) => ({
         margin: 10,
         padding: 0,
         color: theme.colors.primary,
-    }
+    },
+    contentContainer: {
+        justifyContent: 'center', // Moved justifyContent to contentContainerStyle
+        // any other layout affecting styles for children go here
+    },
 }));
