@@ -67,7 +67,7 @@ export default function Index() {
 
       <Button
         title="Create a perscription"
-        onPress={() => navigation.navigate('CreatePerscrtiption')}
+        onPress={() => navigation.navigate('CreatePerscription')}
       />
 
       <BottomNavBar />

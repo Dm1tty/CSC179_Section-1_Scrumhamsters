@@ -152,9 +152,17 @@ const CreatePerscription = ({ navigation }) => {
 
 
 export default CreatePerscription;
+
+
+
 */
 
 
+
+
+
+
+/////////////////////////asDFASDD------------------------------------------------------------
 
 
 import React, { useState } from 'react';
@@ -177,9 +185,33 @@ export default function CreatePerscription() {
     const [DOB, setDOB] = useState(''); // Added for patient date of birth
     const [email, setEmail] = useState(auth.currentUser?.email || '');
     const [gender, setGender] = useState(true); // true for Male, false for Female
+    const [medication, setMed] = useState('');
     const [specialistType, setSpecialistType] = useState('');
     const [image, setImage] = useState(null);
     const navigation = useNavigation(); // Use the useNavigation hook
+
+    const handleDOBChange = (text) => {
+        const newText = text.replace(/[^0-9/]/g, ''); // Remove any non-numeric and non-slash characters
+        if (newText.length > 10) {
+          return; // Prevent more than 10 characters (DD/MM/YYYY)
+        }
+    
+        // Formatting as DD/MM/YYYY
+        let parts = newText.split('/').map(part => part.substring(0, 2)); // Split and limit parts to 2 digits
+        if (parts[0]) parts[0] = Math.min(31, parseInt(parts[0], 10)).toString().padStart(2, '0'); // Day from 01 to 31
+        if (parts[1]) parts[1] = Math.min(12, parseInt(parts[1], 10)).toString().padStart(2, '0'); // Month from 01 to 12
+        if (parts.length > 2) parts[2] = parts[2].substring(0, 4); // Limit year to 4 digits
+    
+        const formattedText = parts.join('/').slice(0, 10); // Join parts and limit total length
+        setDOB(formattedText);
+      };
+
+
+
+
+/*
+
+
 
     const getPermissionAsync = async () => {
         if (Platform.OS !== 'web') {
@@ -192,8 +224,8 @@ export default function CreatePerscription() {
         }
         return false;
     };
-
-    const pickImage = async () => {
+*/
+   /* const pickImage = async () => {
         const hasPermission = await getPermissionAsync();
         if (!hasPermission) return;
 
@@ -214,7 +246,7 @@ export default function CreatePerscription() {
         else {
             console.log("Image picking was cancelled");
         }
-    };
+    };  */
 
 
     const uriToBlob = async (uri) => {
@@ -224,6 +256,8 @@ export default function CreatePerscription() {
     };
 
     // Modify the uploadImage function to also return the download URL
+
+    /*
     const uploadImageAndGetURL = async (imageUri) => {
         console.log("uploadImageAndGetURL called with URI:", imageUri);
         console.log("Starting upload...");
@@ -243,6 +277,12 @@ export default function CreatePerscription() {
             throw error; // Rethrow error to catch it outside
         }
     };
+
+
+*/
+
+
+
 
     const handleSaveProfile = async () => {
         console.log("handleSaveProfile called");
@@ -265,6 +305,7 @@ export default function CreatePerscription() {
             DOB,
             email,
             gender: gender ? 'Male' : 'Female',
+            medication,
             specialistType,
             image: imageUrl, // Use the uploaded image URL or null if no image was selected
             name, // Add the constructed 'name' to the perscriptionInfo object
@@ -287,12 +328,30 @@ export default function CreatePerscription() {
 
     return (
         <View style={styles.container}>
-            <TouchableOpacity onPress={pickImage}>
-                {image ? <Image source={{ uri: image }} style={{ width: 200, height: 200 }} /> : <View style={styles.placeholder}><Text>Upload Image</Text></View>}
-            </TouchableOpacity>
-            <TextInput put placeholder="Patient first name" value={patientfName} onChangeText={setFirstName} style={styles.input} />
-            <TextInput placeholder="Patient last Name" value={patientlName} onChangeText={setLastName} style={styles.input} />
+            
+            <TextInput 
+              put placeholder="Patient first name" 
+              value={patientfName} 
+              onChangeText={setFirstName} 
+              style={styles.input} />
+            <TextInput 
+              placeholder="Patient last Name" 
+              value={patientlName} 
+              onChangeText={setLastName} 
+              style={styles.input} />
+            <TextInput
+                placeholder="DOB (DD/MM/YYYY)" 
+                value={DOB} 
+                onChangeText={handleDOBChange} 
+                style={styles.input} 
+                keyboardType="numeric"
+
+                />
+            <TextInput placeholder="Medication" value={medication} onChangeText={setMed} style={styles.input} />
+
+
             <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={styles.input} />
+
             <View style={styles.switchContainer}>
                 <Text>{gender ? 'Male' : 'Female'}</Text>
                 <Switch value={gender} onValueChange={setGender} />
@@ -302,7 +361,8 @@ export default function CreatePerscription() {
                 <Picker.Item label="Doctor" value="Doctor" />
                 <Picker.Item label="Nurse" value="Nurse" />
             </Picker>
-            <Button title="Save Profile" onPress={handleSaveProfile} />
+            <View style={{ marginBottom: 20 }} /> 
+            <Button title="Save Profile" onPress={handleSaveProfile} color="#01011f" />
         </View>
     );
 }
@@ -341,3 +401,9 @@ const styles = StyleSheet.create({
         borderRadius: 5,
     },
 });
+
+
+
+/* <TouchableOpacity onPress={pickImage}>
+                {image ? <Image source={{ uri: image }} style={{ width: 200, height: 200 }} /> : <View style={styles.placeholder}><Text>Upload Image</Text></View>}
+            </TouchableOpacity>  */
