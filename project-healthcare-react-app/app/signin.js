@@ -5,6 +5,8 @@ import { useNavigation } from '@react-navigation/native';
 
 const SignInScreen = () => {
   const auth = getAuth();
+  const navigation = useNavigation(); // Use the useNavigation hook
+
   const [countryCode, setCountryCode] = useState('+91');
   const [mobileNumber, setMobileNumber] = useState('');
 
@@ -26,7 +28,10 @@ const SignInScreen = () => {
         const user = userCredential.user;
         console.log('User signed in: ', user.email);
         // Navigate to your next screen or show success message here
-        navigation.navigate('Profile')
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Profile' }],
+        });
       })
       .catch((error) => {
         const errorCode = error.code;
@@ -38,13 +43,7 @@ const SignInScreen = () => {
   };
 
 
-  const handleSignUp = () => {
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(userCredentials => {
-        console.log('Signed up with:', userCredentials.user.email);
-      })
-      .catch(error => alert(error.message));
-  };
+ 
   
   return (
     <View style={styles.container}>

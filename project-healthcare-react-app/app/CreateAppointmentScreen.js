@@ -35,7 +35,7 @@ const CreateAppointmentScreen = () => {
         const fetchPatients = async () => {
             const querySnapshot = await getDocs(collection(db, "patients"));
             const patientsList = querySnapshot.docs.map(doc => ({
-                label: doc.data().name, // Assuming each doc has a 'name' field
+                label: doc.data().lastName + ", " + doc.data().firstName, // Assuming each doc has a 'name' field
                 value: doc.id,
             }));
             setPatients(patientsList);
