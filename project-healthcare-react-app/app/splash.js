@@ -7,7 +7,7 @@ import { StatusBar, StyleSheet, Text, View, Image } from 'react-native';
 const SplashScreen = () => {
   return (
     <View style={styles.container}>
-      <Image source={require('icon.png')} style={styles.logo} />
+      
       <StatusBar backgroundColor="#4db6ac" barStyle="light-content" />
       <Text style={styles.title}>Patient Diary</Text>
     </View>

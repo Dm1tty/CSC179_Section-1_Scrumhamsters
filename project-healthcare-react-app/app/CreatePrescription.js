@@ -178,7 +178,7 @@ import { Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 
-export default function CreatePerscription() {
+export default function CreatePrescription() {
     const auth = getAuth();
     const [patientfName, setFirstName] = useState('');
     const [patientlName, setLastName] = useState('');
