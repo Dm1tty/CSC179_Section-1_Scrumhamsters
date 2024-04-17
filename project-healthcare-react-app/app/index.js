@@ -112,6 +112,7 @@ export default function Index() {
               <Text style={styles.rowText}>Date: {formatDate(appointment.date)}</Text>
               <Text style={styles.rowText}>Time: {appointment.time}</Text>
             </View>
+
           </View>
         ))}
       </View>
