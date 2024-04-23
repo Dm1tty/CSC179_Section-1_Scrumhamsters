@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { StatusBar, Text, View, Image, ScrollView, Button, ActivityIndicator, StyleSheet } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { StatusBar, Text, View, Image, ScrollView, Button, ActivityIndicator, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import BottomNavBar from '../components/BottomNavBar';
 import { useNavigation } from '@react-navigation/native';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -9,8 +9,11 @@ import { db } from '../firebaseConfig';
 export default function Index() {
   const [doctorName, setDoctorName] = useState('');
   const [appointments, setAppointments] = useState([]);
-  const [doctorImage, setDoctorImage] = useState('https://via.placeholder.com/150');
+  const [doctorImage, setDoctorImage] = useState('httrps://via.placeholder.com/150');
   const [loading, setLoading] = useState(true);
+
+  const [menuVisible, setMenuVisible] = useState(false);
+
 
   const auth = getAuth();
   const navigation = useNavigation();
@@ -67,6 +70,10 @@ export default function Index() {
     setLoading(false);
   }
 
+  const toggleMenu = () => {
+    setMenuVisible(!menuVisible);
+  };
+
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
@@ -95,12 +102,13 @@ export default function Index() {
   
 
   return (
-  <View style={styles.container}>
+    <View style={styles.container}>
     <ScrollView contentContainerStyle={{ alignItems: 'center' }}>
       <StatusBar style="auto" />
       <Image source={{ uri: doctorImage }} style={styles.topImage} />
       <Text style={styles.greeting}>Hi, {doctorName}</Text>
       <View style={styles.table}>
+      <Text style={styles.greeting}>Upcoming appointments</Text>
         {appointments.map((appointment, index) => (
           <View key={index} style={styles.row}>
             <Image source={{ uri: appointment.patientPicture || 'https://via.placeholder.com/150' }} style={styles.rowImage} />
@@ -111,21 +119,37 @@ export default function Index() {
               <Text style={styles.rowText}>Reason: {appointment.reason || 'N/A'}</Text>
               <Text style={styles.rowText}>Date: {formatDate(appointment.date)}</Text>
               <Text style={styles.rowText}>Time: {appointment.time}</Text>
+              </View>
             </View>
-
+          ))}
+        </View>
+      </ScrollView>
+      <TouchableOpacity style={styles.fab} onPress={toggleMenu}>
+        <Text style={styles.fabIcon}>+</Text>
+      </TouchableOpacity>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={menuVisible}
+        onRequestClose={toggleMenu}
+      >
+        <TouchableOpacity style={styles.modalContainer} onPress={toggleMenu}>
+          <View style={styles.menuContainer}>
+          <View style={styles.buttonContainer}>
+              <Button title="Create a Patient" onPress={() => { navigation.navigate('CreatePatientScreen'); toggleMenu(); }} />
+            </View>
+            <View style={styles.buttonContainer}>
+              <Button title="Create an Appointment" onPress={() => { navigation.navigate('CreateAppointmentScreen'); toggleMenu(); }} />
+            </View>
+            <View style={styles.buttonContainer}>
+              <Button title="Create a Prescription" onPress={() => { navigation.navigate('CreatePrescription'); toggleMenu(); }} />
+            </View>
           </View>
-        ))}
-      </View>
-    </ScrollView>
-    <View style={styles.buttonContainer}>
-      <Button title="Create a Patient" onPress={() => navigation.navigate('CreatePatientScreen')} />
-      <Button title="Create an Appointment" onPress={() => navigation.navigate('CreateAppointmentScreen')} />
-      <Button title="Create a prescription" onPress={() => navigation.navigate('CreatePrescription')} />
+        </TouchableOpacity>
+      </Modal>
+      <BottomNavBar style={styles.bottomNavBar} />
     </View>
-    <BottomNavBar style={styles.bottomNavBar} />
-  </View>
-);
-
+  );
 }
 
 const styles = StyleSheet.create({
@@ -133,29 +157,38 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 20,
   },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+  },
+
   greeting: {
     fontSize: 22,
     fontWeight: 'bold',
     marginTop: 20,
     marginBottom: 10,
   },
-  topImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    alignSelf: 'center',
+
+  buttonContainer: {
+    width: '100%', // This ensures the button fills its container
+    marginBottom: 10,
   },
-  table: {
-    width: '100%',
-    paddingHorizontal: 20, // Adjust padding instead of setting width to '90%'
-  },
+
   row: {
     flexDirection: 'row',
+    backgroundColor: 'white',
+    padding: 20,
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
     marginVertical: 5,
+  },
+  table: {
+    width: '100%',
+    paddingHorizontal: 20, // Adjust padding instead of setting width to '90%'
   },
   rowImage: {
     width: 50,
@@ -165,20 +198,41 @@ const styles = StyleSheet.create({
   rowTextContainer: {
     marginLeft: 15, // Spacing between image and text
     flex: 1,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   rowText: {
     fontSize: 14, // Slightly smaller text for better fit on various screens
     marginVertical: 2, // Reduce vertical spacing
   },
-  buttonContainer: {
-    marginTop: 20,
+  topImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    alignSelf: 'center'},
+
+  menuContainer: {
     width: '100%',
+    backgroundColor: 'white',
+    padding: 20,
+    alignItems: 'center',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+
+  fab: {
+    position: 'absolute',
+    right: 30,
+    bottom: 70,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#1EB6B9',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  button: {
-    marginBottom: 10,
-    width: '80%', // Adjust the width as necessary
-    // Add any additional styling for individual buttons here
+  fabIcon: {
+    fontSize: 24,
+    color: 'white',
   },
-  
-});
+})

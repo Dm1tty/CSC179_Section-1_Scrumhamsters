@@ -3,11 +3,14 @@ import { View, Text, StyleSheet, Button, ScrollView, TextInput, TouchableOpacity
 import { collection, getDocs, getDoc, doc } from 'firebase/firestore'; // Ensure you import `doc`
 import { db } from '../firebaseConfig';
 import BottomNavBar from '../components/BottomNavBar';
+import { useNavigation } from '@react-navigation/native';
 
 const AppointmentsPage = () => {
   const [selectedTab, setSelectedTab] = useState('Upcoming');
   const [searchQuery, setSearchQuery] = useState('');
   const [appointments, setAppointments] = useState([]);
+
+  const navigation = useNavigation();
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -37,6 +40,12 @@ const AppointmentsPage = () => {
     fetchAppointments();
   }, []);
 
+  const navigateToAppointmentDetails = (appointmentId) => {
+    navigation.navigate('appointment_detail', { appointmentId });
+    console.log("Navigating to details with ID:", appointmentId);
+
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -58,7 +67,7 @@ const AppointmentsPage = () => {
         {appointments.length > 0 ? (
           appointments.map((appointment) => (
             // TODO: add navigation to appointment details scren
-            <TouchableOpacity key={appointment.id} onPress={() => navigateToPatientPage(appointment.id)}>
+            <TouchableOpacity key={appointment.id} onPress={() => navigateToAppointmentDetails(appointment.id)}>
               <View style={styles.appointmentItem}>
                 <View style={styles.appointmentItemRow}>
                   <Image source={require('../assets/favicon.png')} style={styles.icon} />

@@ -1,3 +1,4 @@
+import { useRoute } from '@react-navigation/native';
 import React from "react";
 import {
   View,
@@ -12,8 +13,13 @@ import Icon from "react-native-vector-icons/FontAwesome";
 const windowWidth = Dimensions.get("window").width;
 
 const AppointSchreen = () => {
+  const route = useRoute();
+  const { appointmentId } = route.params ?? {};  // Provides an empty object as fallback
+  console.log("Route params received:", route.params);
+
   return (
     <View>
+            <Text>Appointment ID: {appointmentId}</Text>
       <View style={styles.container}>
         <TouchableOpacity style={styles.backButton}>
           <Icon name="arrow-left" size={20} color="#FFFFFF" />
