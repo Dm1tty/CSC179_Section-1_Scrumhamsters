@@ -27,6 +27,7 @@ const AppointmentDetailScreen = () => {
   const [loading, setLoading] = useState(true);
   const [appointment, setAppointment] = useState(null);
   const [illnesses, setIllnesses] = useState([]);
+  const [patientId, setPatientId] = useState(null);
 
   console.log("Route params received:", route.params);
 
@@ -49,8 +50,9 @@ const AppointmentDetailScreen = () => {
                 if (patientSnap.exists()) {
                     const patientData = patientSnap.data();
                     setPatient(patientData);
-                    
-                    // Access the illnesses array directly from the patient data
+                    setPatientId(patientSnap.id);  // Set the patient's ID
+                    console.log("patientID:"+patientId)
+                    // Check for illnesses and set them
                     if (patientData.illnesses && patientData.illnesses.length > 0) {
                         setIllnesses(patientData.illnesses);
                         console.log("Illnesses:", patientData.illnesses);
@@ -62,6 +64,7 @@ const AppointmentDetailScreen = () => {
                     console.log('No such patient!');
                     setPatient(null);
                     setIllnesses([]);
+                    setPatientId(null);  // Ensure to clear ID if no patient is found
                 }
             } else {
                 console.log('No such appointment!');
@@ -75,12 +78,16 @@ const AppointmentDetailScreen = () => {
     };
 
     fetchAppointmentAndPatient();
-}, [appointmentId]);
+}, [appointmentId, patientId]);
 
 
-  // Handler to navigate to a different screen
+
   const handleAppointmentCompletion = () => {
-    navigation.navigate('visit_summary'); 
+    navigation.navigate('visit_summary', {
+      patientData: patient,  // 'patient' holds your patient data,
+      patientId: patientId,
+      appointmentId: appointmentId  //  'appointmentId' is the ID of the appointment
+    });
   };
 
   const handleAppointmentCancellation = () => {
