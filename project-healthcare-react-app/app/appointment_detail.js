@@ -1,21 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { db } from '../firebaseConfig';
-import { getDoc, doc, updateDoc } from 'firebase/firestore';
+import { getDoc, doc, updateDoc, Timestamp } from 'firebase/firestore';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { View, Text, Image, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 
-
-
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  Dimensions,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-} from "react-native";
-import Icon from "react-native-vector-icons/FontAwesome";
 
 const windowWidth = Dimensions.get("window").width;
 
@@ -28,59 +17,73 @@ const AppointmentDetailScreen = () => {
   const [appointment, setAppointment] = useState(null);
   const [illnesses, setIllnesses] = useState([]);
   const [patientId, setPatientId] = useState(null);
+  const [isPickerShow, setIsPickerShow] = useState(false);
+
+  const [newDateTime, setNewDateTime] = useState(new Date());
 
   console.log("Route params received:", route.params);
 
 
   useEffect(() => {
     const fetchAppointmentAndPatient = async () => {
-        setLoading(true);
-        try {
-            const appointmentRef = doc(db, 'appointments', appointmentId);
-            const appointmentSnap = await getDoc(appointmentRef);
+      setLoading(true);
+      try {
+        const appointmentRef = doc(db, 'appointments', appointmentId);
+        const appointmentSnap = await getDoc(appointmentRef);
 
-            if (appointmentSnap.exists()) {
-                const appData = appointmentSnap.data();
-                appData.date = appData.date ? appData.date.toDate().toDateString() : 'N/A';
-                setAppointment(appData);
+        if (appointmentSnap.exists()) {
+          const appData = appointmentSnap.data();
+          appData.date = appData.date ? appData.date.toDate().toDateString() : 'N/A';
+          setAppointment(appData);
 
-                const patientRef = doc(db, 'patients', appData.patient);
-                const patientSnap = await getDoc(patientRef);
+          const patientRef = doc(db, 'patients', appData.patient);
+          const patientSnap = await getDoc(patientRef);
 
-                if (patientSnap.exists()) {
-                    const patientData = patientSnap.data();
-                    setPatient(patientData);
-                    setPatientId(patientSnap.id);  // Set the patient's ID
-                    console.log("patientID:"+patientId)
-                    // Check for illnesses and set them
-                    if (patientData.illnesses && patientData.illnesses.length > 0) {
-                        setIllnesses(patientData.illnesses);
-                        console.log("Illnesses:", patientData.illnesses);
-                    } else {
-                        setIllnesses([]);
-                        console.log("No illnesses listed in the patient document.");
-                    }
-                } else {
-                    console.log('No such patient!');
-                    setPatient(null);
-                    setIllnesses([]);
-                    setPatientId(null);  // Ensure to clear ID if no patient is found
-                }
+          if (patientSnap.exists()) {
+            const patientData = patientSnap.data();
+            setPatient(patientData);
+            setPatientId(patientSnap.id);  // Set the patient's ID
+            console.log("patientID:" + patientId)
+            // Check for illnesses and set them
+            if (patientData.illnesses && patientData.illnesses.length > 0) {
+              setIllnesses(patientData.illnesses);
+              console.log("Illnesses:", patientData.illnesses);
             } else {
-                console.log('No such appointment!');
-                setAppointment(null);
+              setIllnesses([]);
+              console.log("No illnesses listed in the patient document.");
             }
-        } catch (error) {
-            console.error("Error fetching data: ", error);
-        } finally {
-            setLoading(false);
+          } else {
+            console.log('No such patient!');
+            setPatient(null);
+            setIllnesses([]);
+            setPatientId(null);  // Ensure to clear ID if no patient is found
+          }
+        } else {
+          console.log('No such appointment!');
+          setAppointment(null);
         }
+      } catch (error) {
+        console.error("Error fetching data: ", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchAppointmentAndPatient();
-}, [appointmentId, patientId]);
+  }, [appointmentId, patientId]);
 
 
+  // Handler to simply set the date without hiding the picker
+  const handleDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || newDateTime;
+    setNewDateTime(currentDate);  // Update the full date and time
+  };
+
+  // Add a function to hide the picker and confirm the rescheduling
+  const confirmRescheduling = () => {
+    updateAppointment();  // Call the function to update Firestore
+    setIsPickerShow(false);  // Now hide the picker
+  };
 
   const handleAppointmentCompletion = () => {
     navigation.navigate('visit_summary', {
@@ -100,8 +103,8 @@ const AppointmentDetailScreen = () => {
           onPress: () => console.log("Cancellation aborted"),
           style: "cancel"
         },
-        { 
-          text: "Confirm", 
+        {
+          text: "Confirm",
           onPress: () => {
             console.log("Confirmed cancellation");
             cancelAppointment();
@@ -110,16 +113,16 @@ const AppointmentDetailScreen = () => {
       ]
     );
   };
-  
+
   const cancelAppointment = async () => {
-    const appointmentRef = doc(db, 'appointments', appointmentId); 
-  
+    const appointmentRef = doc(db, 'appointments', appointmentId);
+
     try {
       await updateDoc(appointmentRef, {
         status: "Cancelled"
       });
       console.log('Appointment successfully cancelled.');
-      
+
       // Optionally, navigate back or refresh the data here
     } catch (error) {
       console.error("Error updating document: ", error);
@@ -132,17 +135,68 @@ const AppointmentDetailScreen = () => {
   const illnessNames = illnesses.map(illness => illness.name).join(', ');
   console.log("ilnesses: " + illnessNames);
 
+  function calculateAge(dob) {
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    return age;
+  }
+
+  const formatTimeForFirestore = (newDateTime) => {
+    return `${newDateTime.getHours().toString().padStart(2, '0')}:${newDateTime.getMinutes().toString().padStart(2, '0')}`;
+  };
+
+  const age = calculateAge(patient.dateOfBirth);
+
+
+  const updateAppointment = async () => {
+    const appointmentRef = doc(db, 'appointments', appointmentId);
+    try {
+      await updateDoc(appointmentRef, {
+        date: Timestamp.fromDate(newDateTime), // Convert the entire newDateTime to a Firestore timestamp
+        time: formatTimeForFirestore(newDateTime),
+        status: 'Upcoming'
+      });
+
+      console.log('Appointment rescheduled successfully');
+      Alert.alert(
+        "Appointment Rescheduled",
+        [
+
+          {
+            text: "Okay",
+            onPress: () => {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'index' }],
+              });
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Error updating appointment:', error);
+    }
+  };
+
+
   return (
     <View>
       <View style={styles.container}>
-          <Image
-            source={patient?.image ? { uri: patient.image } : require('../assets/icon.png')}
-            style={styles.circularImageView}
-          />
+        <Image
+          source={patient?.image ? { uri: patient.image } : require('../assets/icon.png')}
+          style={styles.circularImageView}
+        />
 
         <View style={styles.content}>
           <Text style={styles.name}>{patient.firstName} {patient.lastName}</Text>
-          <Text style={styles.age}>32 yrs</Text>
+          <Text style={styles.age}>Age: {age}</Text>
         </View>
       </View>
       <View style={styles.detailesConatainer}>
@@ -163,31 +217,30 @@ const AppointmentDetailScreen = () => {
 
 
           <TouchableOpacity onPress={handleAppointmentCancellation}>
-          <View style={styles.item}>
-            {/* Icon image */}
-            <Image
-              source={require('../assets/delete-icon.png')}
-              style={styles.icon}
-            />
-            {/* Text */}
-            <Text style={styles.itemText}>Cancel{"\n"}Appointment</Text>
-          </View>
+            <View style={styles.item}>
+              {/* Icon image */}
+              <Image
+                source={require('../assets/delete-icon.png')}
+                style={styles.icon}
+              />
+              {/* Text */}
+              <Text style={styles.itemText}>Cancel{"\n"}Appointment</Text>
+            </View>
           </TouchableOpacity>
 
-          <View style={styles.item}>
-            {/* Icon image */}
-            <Image
-              source={require('../assets/reschedule-icon.png')}
-              style={styles.icon}
-            />
-            {/* Text */}
+
+          <TouchableOpacity onPress={() => setIsPickerShow(true)} style={styles.item}>
+            <Image source={require('../assets/reschedule-icon.png')} style={styles.icon} />
             <Text style={styles.itemText}>Reschedule{"\n"}Appointment</Text>
-          </View>
+          </TouchableOpacity>
+
+
+
         </View>
       </View>
 
       <View style={styles.patientDetaileContainer}>
-        <Text style={styles.tagContainer}>Patient Detailes</Text>
+        <Text style={styles.tagContainer}>Patient Details </Text>
         <View style={styles.keyValueContainer}>
           <Text style={styles.key}>Full Name</Text>
           <Text style={styles.value}>{patient.firstName} {patient.lastName}</Text>
@@ -209,22 +262,31 @@ const AppointmentDetailScreen = () => {
           <Text style={styles.value}>{illnessNames}</Text>
         </View>
 
-        <Text style={styles.tagContainer}>Prescription</Text>
+        <Text style={styles.tagContainer}>Details</Text>
+        <View style={styles.keyValueContainer}>
+          <Text style={styles.key}>Reason</Text>
+          <Text style={styles.value}>{appointment.reason}</Text>
+        </View>
 
-      </View>
-      <View style={styles.itemContainer}>
-        <Image
-          source={require('../assets/prescription-icon.png')}
-          style={styles.document}
-        />
-        <Image
-          source={require('../assets/prescription-icon.png')}
-          style={styles.document}
-        />
-      </View>
-      <TouchableOpacity style={styles.button} >
-        <Text style={styles.buttonText}>Save</Text>
-      </TouchableOpacity>
+        </View>
+        {isPickerShow && (
+          <>
+            <Text style={styles.tagContainer}>Reschedule</Text>
+            <DateTimePicker
+              value={newDateTime}
+              mode="datetime"
+              is24Hour={true}
+              display="default"
+              onChange={handleDateChange}
+            />
+            <TouchableOpacity onPress={confirmRescheduling} style={styles.button}>
+              <Text style={styles.buttonText}>Confirm Reschedule</Text>
+            </TouchableOpacity>
+          </>
+        )}
+
+      
+
     </View>
   );
 };
@@ -236,6 +298,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     marginTop: 10,
+  },
+  pickerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent', // Optional: for better visibility in debugging
   },
   key: {
     fontSize: 14,
