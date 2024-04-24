@@ -69,6 +69,10 @@ export default function Index() {
         title="Create a prescription"
         onPress={() => navigation.navigate('CreatePrescription')}
       />
+      <Button
+        title="Profile page"
+        onPress={() => navigation.navigate('Profile')}
+      />
 
       <BottomNavBar />
     </View>

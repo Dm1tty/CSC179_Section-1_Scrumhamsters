@@ -209,44 +209,6 @@ export default function CreatePrescription() {
 
 
 
-/*
-
-
-
-    const getPermissionAsync = async () => {
-        if (Platform.OS !== 'web') {
-            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-            if (status !== 'granted') {
-                alert('Sorry, we need camera roll permissions to make this work!');
-                return false;
-            }
-            return true;
-        }
-        return false;
-    };
-*/
-   /* const pickImage = async () => {
-        const hasPermission = await getPermissionAsync();
-        if (!hasPermission) return;
-
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.All,
-            allowsEditing: true,
-            aspect: [4, 3],
-            quality: 1,
-        });
-        console.log(result); // Log the full result to inspect it
-
-
-        if (!result.cancelled) {
-            const imageUri = result.assets[0].uri; // Access the uri from the first item in the assets array
-            setImage(imageUri);
-            console.log("Image URI set:", imageUri);
-        }
-        else {
-            console.log("Image picking was cancelled");
-        }
-    };  */
 
 
     const uriToBlob = async (uri) => {
@@ -255,34 +217,7 @@ export default function CreatePrescription() {
         return blob;
     };
 
-    // Modify the uploadImage function to also return the download URL
-
-    /*
-    const uploadImageAndGetURL = async (imageUri) => {
-        console.log("uploadImageAndGetURL called with URI:", imageUri);
-        console.log("Starting upload...");
-        try {
-            const blob = await uriToBlob(imageUri);
-            const storage = getStorage();
-            const storageRef = ref(storage, `profile_Images/${auth.currentUser.uid}`);
-
-
-            await uploadBytes(storageRef, blob); // Ensure this promise resolves
-            console.log('Image uploaded successfully');
-            const downloadURL = await getDownloadURL(storageRef);
-            console.log('Obtained download URL:', downloadURL);
-            return downloadURL;
-        } catch (error) {
-            console.error("Failed to upload image and get URL:", error);
-            throw error; // Rethrow error to catch it outside
-        }
-    };
-
-
-*/
-
-
-
+    
 
     const handleSaveProfile = async () => {
         console.log("handleSaveProfile called");
