@@ -177,4 +177,4 @@ const styles = StyleSheet.create({
                 {image ? <Image source={{ uri: image }} style={{ width: 200, height: 200 }} /> : <View style={styles.placeholder}><Text>Upload Image</Text></View>}
             </TouchableOpacity>  */
 
-export default CreatePrescription;
+//export default CreatePrescription;
