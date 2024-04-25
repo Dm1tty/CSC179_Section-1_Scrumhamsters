@@ -84,6 +84,7 @@ const CreateAppointmentScreen = () => {
                 date: Timestamp.fromDate(dateOnly), // Firestore Timestamp for the date
                 time: appointmentTime, // Save the selected time
                 reason,
+                status: 'Upcoming'
             });
             Alert.alert(
                 "Success", // Alert Title

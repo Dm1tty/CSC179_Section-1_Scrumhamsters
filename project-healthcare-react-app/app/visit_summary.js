@@ -7,8 +7,7 @@ import { db } from '../firebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
 const VisitScreen = () => {
-  const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
+
   const [doctor, setDoctor] = useState(null);
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
@@ -51,15 +50,9 @@ const VisitScreen = () => {
     fetchAppointmentAndDoctor();
   }, [appointmentId]);
 
-  const handleDateChange = (event, selectedDate) => {
-    setShowDatePicker(false); // Dismiss the DateTimePicker when a date is selected
-    const currentDate = selectedDate || date;
-    setDate(currentDate);
-  };
 
-  const handleInputPress = () => {
-    setShowDatePicker(true);
-  };
+
+
   const handleSubmit = async () => {
     const patientRef = doc(db, 'patients', patientId); // Adjust 'id' as necessary
     const appointmentRef = doc(db, 'appointments', appointmentId);

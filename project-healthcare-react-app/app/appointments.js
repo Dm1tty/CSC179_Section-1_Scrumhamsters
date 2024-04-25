@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Button, ScrollView, TextInput, TouchableOpacity, Image } from 'react-native';
-import { collection, getDocs, getDoc, doc } from 'firebase/firestore'; // Ensure you import `doc`
+import { collection, getDocs, getDoc, doc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import BottomNavBar from '../components/BottomNavBar';
 import { useNavigation } from '@react-navigation/native';
@@ -9,6 +9,7 @@ const AppointmentsPage = () => {
   const [selectedTab, setSelectedTab] = useState('Upcoming');
   const [searchQuery, setSearchQuery] = useState('');
   const [appointments, setAppointments] = useState([]);
+  const [filteredAppointments, setFilteredAppointments] = useState([]);
 
   const navigation = useNavigation();
 
@@ -17,18 +18,18 @@ const AppointmentsPage = () => {
       const querySnapshot = await getDocs(collection(db, "appointments"));
       const appointmentsPromises = querySnapshot.docs.map(async (docSnapshot) => {
         const data = docSnapshot.data();
-        
+
         const patientRef = doc(db, "patients", data.patient);
         const patientSnapshot = await getDoc(patientRef);
         const patientData = patientSnapshot.data();
-        const appointmentDate = data.date?.toDate()?.toDateString() || 'N/A'; // Convert the 'date' Timestamp
+        const appointmentDate = data.date?.toDate()?.toDateString() || 'N/A';
 
         return {
           id: docSnapshot.id,
           ...data,
-          patientName: patientData?.firstName + ", " + patientData.lastName, // Use optional chaining in case data is undefined
+          patientName: patientData?.firstName + " " + patientData.lastName,
           dob: patientData?.dateOfBirth, 
-          time: data.time || 'N/A', // Use the 'time' string directly
+          time: data.time || 'N/A',
           date: appointmentDate
         };
       });
@@ -40,10 +41,20 @@ const AppointmentsPage = () => {
     fetchAppointments();
   }, []);
 
+  useEffect(() => {
+    filterAppointments();
+  }, [selectedTab, appointments, searchQuery]);
+
+  const filterAppointments = () => {
+    const filtered = appointments.filter(appointment =>
+      appointment.status === selectedTab &&
+      appointment.patientName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredAppointments(filtered);
+  };
+
   const navigateToAppointmentDetails = (appointmentId) => {
     navigation.navigate('appointment_detail', { appointmentId });
-    console.log("Navigating to details with ID:", appointmentId);
-
   };
 
   return (
@@ -52,6 +63,7 @@ const AppointmentsPage = () => {
         <Text style={styles.pageTitle}>Appointments</Text>
         <TextInput
           placeholder="Search by name"
+          value={searchQuery}
           onChangeText={setSearchQuery}
           style={styles.searchInput}
         />
@@ -64,9 +76,8 @@ const AppointmentsPage = () => {
       </View>
 
       <ScrollView style={styles.appointmentsList}>
-        {appointments.length > 0 ? (
-          appointments.map((appointment) => (
-            // TODO: add navigation to appointment details scren
+        {filteredAppointments.length > 0 ? (
+          filteredAppointments.map((appointment) => (
             <TouchableOpacity key={appointment.id} onPress={() => navigateToAppointmentDetails(appointment.id)}>
               <View style={styles.appointmentItem}>
                 <View style={styles.appointmentItemRow}>
@@ -89,6 +100,7 @@ const AppointmentsPage = () => {
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

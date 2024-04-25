@@ -46,7 +46,8 @@ export default function Index() {
       console.log("No such document for doctor's name!");
     }
 
-    const q = query(collection(db, "appointments"), where("doctor", "==", user.uid));
+    const q = query(collection(db, "appointments"), where("doctor", "==", user.uid), where("status", "==", "Upcoming")  // Only fetch appointments with status "Upcoming" and assigned to the currently signed in doctor
+  );
     const querySnapshot = await getDocs(q);
     const appointmentsWithPatientInfo = await Promise.all(querySnapshot.docs.map(async (docSnapshot) => {
       const appointment = docSnapshot.data();
