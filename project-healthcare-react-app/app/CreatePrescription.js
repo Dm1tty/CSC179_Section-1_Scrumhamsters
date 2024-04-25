@@ -1,205 +1,152 @@
 
-import React, { useState } from 'react';
-import { View, TextInput, Button, Text, Switch, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import { db } from '../firebaseConfig';
-import { collection, doc, setDoc } from 'firebase/firestore';
-import * as ImagePicker from 'expo-image-picker';
+import React, { useState, useEffect } from 'react';
+import { View, TextInput, Button, Text, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
+import RNPickerSelect from 'react-native-picker-select';
+import { collection, getDocs, doc, addDoc, Timestamp } from 'firebase/firestore';
 import { getAuth } from "firebase/auth";
-import { getStorage, ref, uploadBytes } from 'firebase/storage';
-import { getDownloadURL } from 'firebase/storage';
-import { Platform } from 'react-native';
+import { db } from '../firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
+import medications from '../assets/medicine.json';
 
 
-const CreatePrescription = ({ }) => {
+const CreatePrescription = () => {
     const auth = getAuth();
-    const [patientfName, setFirstName] = useState('');
-    const [patientlName, setLastName] = useState('');
-    const [DOB, setDOB] = useState(''); // Added for patient date of birth
-    const [email, setEmail] = useState(auth.currentUser?.email || '');
-    const [gender, setGender] = useState(true); // true for Male, false for Female
-    const [medication, setMed] = useState('');
-    const [specialistType, setSpecialistType] = useState('');
-    const [image, setImage] = useState(null);
-    const navigation = useNavigation(); // Use the useNavigation hook
+    const navigation = useNavigation();
+    const [loading, setLoading] = useState(true);
+    const [doctors, setDoctors] = useState([]);
+    const [patients, setPatients] = useState([]);
 
-    const handleDOBChange = (text) => {
-        const newText = text.replace(/[^0-9/]/g, ''); // Remove any non-numeric and non-slash characters
-        if (newText.length > 10) {
-          return; // Prevent more than 10 characters (DD/MM/YYYY)
-        }
-    
-        // Formatting as DD/MM/YYYY
-        let parts = newText.split('/').map(part => part.substring(0, 2)); // Split and limit parts to 2 digits
-        if (parts[0]) parts[0] = Math.min(31, parseInt(parts[0], 10)).toString().padStart(2, '0'); // Day from 01 to 31
-        if (parts[1]) parts[1] = Math.min(12, parseInt(parts[1], 10)).toString().padStart(2, '0'); // Month from 01 to 12
-        if (parts.length > 2) parts[2] = parts[2].substring(0, 4); // Limit year to 4 digits
-    
-        const formattedText = parts.join('/').slice(0, 10); // Join parts and limit total length
-        setDOB(formattedText);
-      };
+    const [prescription, setPrescription] = useState({
+        medication: '',
+        strength: '',
+        amountPerDose: '',
+        route: '',
+        form: '',
+        frequency: '',
+        duration: '',
+        purpose: '',
+        refills: '',
+        doctor: '',
+        patient: ''
+    });
 
-
-
-
-/*
-
-
-
-    const getPermissionAsync = async () => {
-        if (Platform.OS !== 'web') {
-            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-            if (status !== 'granted') {
-                alert('Sorry, we need camera roll permissions to make this work!');
-                return false;
-            }
-            return true;
-        }
-        return false;
-    };
-*/
-   /* const pickImage = async () => {
-        const hasPermission = await getPermissionAsync();
-        if (!hasPermission) return;
-
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.All,
-            allowsEditing: true,
-            aspect: [4, 3],
-            quality: 1,
-        });
-        console.log(result); // Log the full result to inspect it
-
-
-        if (!result.cancelled) {
-            const imageUri = result.assets[0].uri; // Access the uri from the first item in the assets array
-            setImage(imageUri);
-            console.log("Image URI set:", imageUri);
-        }
-        else {
-            console.log("Image picking was cancelled");
-        }
-    };  */
-
-
-    const uriToBlob = async (uri) => {
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        return blob;
-    };
-
-    // Modify the uploadImage function to also return the download URL
-
-    /*
-    const uploadImageAndGetURL = async (imageUri) => {
-        console.log("uploadImageAndGetURL called with URI:", imageUri);
-        console.log("Starting upload...");
-        try {
-            const blob = await uriToBlob(imageUri);
-            const storage = getStorage();
-            const storageRef = ref(storage, `profile_Images/${auth.currentUser.uid}`);
-
-
-            await uploadBytes(storageRef, blob); // Ensure this promise resolves
-            console.log('Image uploaded successfully');
-            const downloadURL = await getDownloadURL(storageRef);
-            console.log('Obtained download URL:', downloadURL);
-            return downloadURL;
-        } catch (error) {
-            console.error("Failed to upload image and get URL:", error);
-            throw error; // Rethrow error to catch it outside
-        }
-    };
-
-
-*/
-
-
-
-
-    const handleSaveProfile = async () => {
-        console.log("handleSaveProfile called");
-        let imageUrl = null;
-        if (image) {
-            try {
-                imageUrl = await uploadImageAndGetURL(image);
-            } catch (error) {
-                alert(`Failed to upload image: ${error.message}`);
-                return; // Exit the function if image upload fails
-            }
-        }
-
-        // Construct the 'name' field using firstName and the first letter of lastName
-        const name = `${firstName} ${lastName.charAt(0)}.`;
-
-        const perscriptionInfo = {
-            patientfName,
-            patientlName,
-            DOB,
-            email,
-            gender: gender ? 'Male' : 'Female',
-            medication,
-            specialistType,
-            image: imageUrl, // Use the uploaded image URL or null if no image was selected
-            name, // Add the constructed 'name' to the perscriptionInfo object
+    useEffect(() => {
+        const fetchData = async () => {
+            const doctorsSnapshot = await getDocs(collection(db, "doctors"));
+            const patientsSnapshot = await getDocs(collection(db, "patients"));
+            setDoctors(doctorsSnapshot.docs.map(doc => ({ label: doc.data().name, value: doc.id })));
+            setPatients(patientsSnapshot.docs.map(doc => ({
+                label: `${doc.data().lastName}, ${doc.data().firstName}`,
+                value: doc.id
+            })));
+            setLoading(false);
         };
 
+        fetchData();
+    }, []);
+
+    const handleChange = (name, value) => {
+        setPrescription(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async () => {
+        if (!prescription.medication || !prescription.strength || !prescription.patient) {
+            alert('Please fill in all required fields, including selecting a patient.');
+            return;
+        }
+    
         try {
-            await setDoc(doc(db, "doctors", auth.currentUser.uid), perscriptionInfo);
-            alert('Profile saved successfully');
+            // Accessing the subcollection 'prescriptions' under the specific patient's document
+            const patientRef = doc(db, 'patients', prescription.patient);
+            const prescriptionsRef = collection(patientRef, 'prescriptions');
+    
+            // Adding a new prescription document to the 'prescriptions' subcollection
+            await addDoc(prescriptionsRef, {
+                ...prescription,
+                createdAt: Timestamp.fromDate(new Date())  // Adds a timestamp of creation
+            });
+    
+            alert('Prescription saved successfully.');
             navigation.reset({
                 index: 0,
-                routes: [{ name: 'Profile' }],
+                routes: [{ name: 'index' }],
               });
-
+            
+            setPrescription({
+                medication: '',
+                strength: '',
+                amountPerDose: '',
+                route: '',
+                form: '',
+                frequency: '',
+                duration: '',
+                purpose: '',
+                refills: '',
+                doctor: '',
+                patient: ''
+            });
         } catch (error) {
-            alert(`Error saving profile: ${error.message}`);
+            console.error('Error saving prescription:', error);
+            alert('Failed to save the prescription.');
         }
     };
 
-
+    if (loading) {
+        return <ActivityIndicator size="large" color="#0000ff" />;
+    }
 
     return (
         <View style={styles.container}>
-            
-            <TextInput 
-              put placeholder="Patient first name" 
-              value={patientfName} 
-              onChangeText={setFirstName} 
-              style={styles.input} />
-            <TextInput 
-              placeholder="Patient last Name" 
-              value={patientlName} 
-              onChangeText={setLastName} 
-              style={styles.input} />
-            <TextInput
-                placeholder="DOB (DD/MM/YYYY)" 
-                value={DOB} 
-                onChangeText={handleDOBChange} 
-                style={styles.input} 
-                keyboardType="numeric"
-
-                />
-            <TextInput placeholder="Medication" value={medication} onChangeText={setMed} style={styles.input} />
-
-
-            <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={styles.input} />
-
-            <View style={styles.switchContainer}>
-                <Text>{gender ? 'Male' : 'Female'}</Text>
-                <Switch value={gender} onValueChange={setGender} />
-            </View>
-            <Picker selectedValue={specialistType} onValueChange={(itemValue, itemIndex) => setSpecialistType(itemValue)} style={styles.picker}>
-                <Picker.Item label="PA" value="PA" />
-                <Picker.Item label="Doctor" value="Doctor" />
-                <Picker.Item label="Nurse" value="Nurse" />
-            </Picker>
-            <View style={{ marginBottom: 20 }} /> 
-            <Button title="Save Profile" onPress={handleSaveProfile} color="#01011f" />
+            <RNPickerSelect
+                onValueChange={(value) => handleChange('patient', value)}
+                items={patients}
+                style={pickerSelectStyles}
+                placeholder={{ label: "Select a patient", value: null }}
+            />
+            {Object.entries(prescription).map(([key, value]) => (
+                key !== 'doctor' && key !== 'patient' ? (
+                    <TextInput
+                        key={key}
+                        placeholder={key.charAt(0).toUpperCase() + key.slice(1)}
+                        value={value}
+                        onChangeText={(text) => handleChange(key, text)}
+                        style={styles.input}
+                    />
+                ) : null
+            ))}
+            <RNPickerSelect
+                onValueChange={(value) => handleChange('doctor', value)}
+                items={doctors}
+                style={pickerSelectStyles}
+                placeholder={{ label: "Prescribed by", value: null }}
+            />
+            <Button title="Save Prescription" style={styles.button} onPress={handleSubmit} />
         </View>
     );
-}
+};
+
+const pickerSelectStyles = StyleSheet.create({
+    inputIOS: {
+        fontSize: 16,
+        paddingVertical: 12,
+        paddingHorizontal: 10,
+        borderWidth: 1,
+        borderColor: 'white',
+        borderRadius: 4,
+        color: 'white',
+        paddingRight: 30, // To ensure the dropdown icon doesn't overlap the text
+    },
+    inputAndroid: {
+        fontSize: 16,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        borderWidth: 0.5,
+        borderColor: 'purple',
+        borderRadius: 8,
+        color: 'black',
+        paddingRight: 30, // To ensure the dropdown icon doesn't overlap the text
+    },
+});
 
 const styles = StyleSheet.create({
     container: {
@@ -210,7 +157,7 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     input: {
-        width: 300,
+        width: '100%',
         padding: 10,
         margin: 10,
         backgroundColor: 'white',
@@ -234,12 +181,17 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         borderRadius: 5,
     },
+    button: {
+        backgroundColor: '#1EB6B9',
+        paddingVertical: 15,
+        paddingHorizontal: 60,
+        borderRadius: 10,
+        marginTop: 20,
+    
+      },
 });
 
 
 
-/* <TouchableOpacity onPress={pickImage}>
-                {image ? <Image source={{ uri: image }} style={{ width: 200, height: 200 }} /> : <View style={styles.placeholder}><Text>Upload Image</Text></View>}
-            </TouchableOpacity>  */
 
 export default CreatePrescription;
