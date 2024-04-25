@@ -219,11 +219,11 @@ const AppointSchreen =() => {
         <Image
               source={require('./assets/prescription-icon.png')}
 =======
-              source={require('../assets/prescription-icon.png')}
+              source={require('./assets/prescription-icon.png')}
               style={styles.document}
             />
         <Image
-              source={require('../assets/prescription-icon.png')}
+              source={require('./assets/prescription-icon.png')}
 >>>>>>> Stashed changes
               style={styles.document}
             />
