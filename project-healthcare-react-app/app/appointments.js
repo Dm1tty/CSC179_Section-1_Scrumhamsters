@@ -7,6 +7,7 @@ const AppointmentsPage = () => {
   const [selectedTab, setSelectedTab] = useState('Upcoming');
   const [searchQuery, setSearchQuery] = useState('');
 
+<<<<<<< Updated upstream
   const appointments = [
     { id: 1, type: 'Upcoming', patientName: 'John Doe', age: 30, time: '2023-10-20T14:00:00Z' },
     { id: 2, type: 'Missed', patientName: 'Jane Smith', age: 24, time: '2023-10-18T09:00:00Z' },
@@ -27,6 +28,44 @@ const AppointmentsPage = () => {
     return appointment.type === selectedTab &&
            appointment.patientName.toLowerCase().includes(searchQuery.toLowerCase());
   });
+=======
+  const navigation = useNavigation(); // Initialize navigation hook
+
+  const navigateToAppintDeatilPage = (appointment) => {
+    navigation.navigate('appointment_detail', {
+      paramKey: {appointment},
+    }); 
+  };
+
+
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      const querySnapshot = await getDocs(collection(db, "appointments"));
+      const appointmentsPromises = querySnapshot.docs.map(async (docSnapshot) => {
+        const data = docSnapshot.data();
+        
+        const patientRef = doc(db, "patients", data.patient);
+        const patientSnapshot = await getDoc(patientRef);
+        const patientData = patientSnapshot.data();
+        const appointmentDate = data.date?.toDate()?.toDateString() || 'N/A'; // Convert the 'date' Timestamp
+
+        return {
+          id: docSnapshot.id,
+          ...data,
+          patientName: patientData?.firstName + ", " + patientData.lastName, // Use optional chaining in case data is undefined
+          dob: patientData?.dateOfBirth, 
+          time: data.time || 'N/A', // Use the 'time' string directly
+          date: appointmentDate
+        };
+      });
+
+      const fetchedAppointments = await Promise.all(appointmentsPromises);
+      setAppointments(fetchedAppointments.sort((a, b) => new Date(a.date) - new Date(b.date)));
+    };
+
+    fetchAppointments();
+  }, []);
+>>>>>>> Stashed changes
 
   return (
     <View style={styles.container}>
@@ -42,6 +81,7 @@ const AppointmentsPage = () => {
       </View>
 
       <ScrollView style={styles.appointmentsList}>
+<<<<<<< Updated upstream
         {filteredAppointments.map((appointment) => (
           <TouchableOpacity key={appointment.id} onPress={() => navigateToPatientPage(appointment.id)}>
             <View style={styles.appointmentItem}>
@@ -51,6 +91,21 @@ const AppointmentsPage = () => {
                   <Text style={styles.appointmentTitle}>{appointment.patientName}</Text>
                   <Text style={styles.appointmentText}>Age: {appointment.age}</Text>
                   <Text style={styles.appointmentText}>{new Date(appointment.time).toLocaleString()}</Text>
+=======
+        {appointments.length > 0 ? (
+          appointments.map((appointment) => (
+            // TODO: add navigation to appointment details scren
+            <TouchableOpacity key={appointment.id} onPress={() => navigateToAppintDeatilPage(appointment)}>
+              <View style={styles.appointmentItem}>
+                <View style={styles.appointmentItemRow}>
+                  <Image source={require('../assets/favicon.png')} style={styles.icon} />
+                  <View style={styles.appointmentDetails}>
+                    <Text style={styles.appointmentTitle}>{appointment.patientName || "No Name"}</Text>
+                    <Text style={styles.appointmentText}>DOB: {appointment.dob}</Text>
+                    <Text style={styles.appointmentText}>Time: {appointment.time}</Text>
+                    <Text style={styles.appointmentText}>Date: {appointment.date}</Text>
+                  </View>
+>>>>>>> Stashed changes
                 </View>
               </View>
             </View>
