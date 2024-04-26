@@ -8,11 +8,16 @@ import { ref as storageRef, getStorage, uploadBytes, getDownloadURL } from 'fire
 import { parseISO } from 'date-fns';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
+import * as MediaLibrary from 'expo-media-library';
+import * as Permissions from 'expo-permissions';
 
-const [fileUrl, setFileUrl] = useState('');
+
+
+
 
 const LabEntryPage = ({}) => {
     const [loading, setLoading] = useState(true);
+    const [fileUrl, setFileUrl] = useState('');
     const navigation = useNavigation();
     const [examResult, setExamResult] = useState({
         patient: '',
@@ -42,41 +47,45 @@ const LabEntryPage = ({}) => {
 
         fetchData();
     }, []);
-    const handleSubmit = async () => {
+
+   
+    const handleSubmit = async (uploadedUrl) => {
+        console.log("Submitting with file URL:", uploadedUrl);
+
         if (!examResult.patient) {
             alert('Please select a patient.');
             return;
         }
-    
+
         const parsedDate = parseISO(examResult.testDate);
         if (isNaN(parsedDate)) {
             alert('Invalid date format. Please correct the Test Date.');
             return;
         }
-    
+
+        if (!uploadedUrl) {
+            alert('Please wait for the file to finish uploading or check file upload errors.');
+            return;
+        }
+
         try {
             const labResultRef = collection(db, "patients", examResult.patient, "labResults");
             await addDoc(labResultRef, {
                 ...examResult,
                 testDate: Timestamp.fromDate(parsedDate),
-                attachedFile: fileUrl || null,
+                attachedFile: uploadedUrl,
             });
             alert('Lab results submitted!');
-            navigation.goBack();
+            navigation.goBack();  // Ensure navigation is correctly managed in terms of state updates
         } catch (error) {
             console.error("Error adding document: ", error);
             alert('Failed to submit lab results.');
         }
     };
     
-    
 
-    const handleFilePick = async () => {
-        const result = await DocumentPicker.getDocumentAsync({});
-        if (result.type === 'success') {
-            uploadFile(result.uri);
-        }
-    };
+    
+    
 
     const uploadFile = async (uri) => {
         const filename = uri.split('/').pop();
@@ -85,12 +94,47 @@ const LabEntryPage = ({}) => {
             const blob = await (await fetch(uri)).blob();
             const snapshot = await uploadBytes(fileRef, blob);
             const url = await getDownloadURL(snapshot.ref);
-            setFileUrl(url);
+            console.log("File uploaded, URL:", url);
+            return url;
         } catch (error) {
             console.error('Upload failed', error);
             alert('Failed to upload file.');
+            return null;
         }
     };
+
+
+
+    const handleFilePick = async () => {
+        const result = await DocumentPicker.getDocumentAsync({
+            type: '*/*',  // Allows all types of documents
+            copyToCacheDirectory: true
+        });
+
+        console.log("Document Picker Result:", JSON.stringify(result));
+
+        if (!result || !result.assets || result.assets.length === 0) {
+            console.log("No valid assets found in the result:", result);
+            alert('No valid assets found.');
+            return;
+        }
+
+        const fileUri = result.assets[0].uri;
+        console.log("Picked file URI:", fileUri);
+        const uploadedUrl = await uploadFile(fileUri);  // Wait for the URL
+        if (uploadedUrl) {
+            setFileUrl(uploadedUrl);  // Set the URL here
+            handleSubmit(uploadedUrl);  // Pass the URL directly to handleSubmit
+        }
+    };
+
+    
+    
+    
+    
+    
+    
+
 
     const handleChange = (name, value) => {
         setExamResult(prev => ({ ...prev, [name]: value }));
