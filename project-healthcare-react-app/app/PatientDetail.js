@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Button, TextInput, FlatList, Image, Alert, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Button, TextInput, FlatList, Image, Alert, Platform, ScrollView, Linking, TouchableOpacity} from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { db } from '../firebaseConfig';
 import { doc, getDoc, updateDoc, Timestamp, collection, getDocs } from 'firebase/firestore';
@@ -135,7 +135,11 @@ const PatientDetail = () => {
   };
   
   
-  
+  const openDocument = (url) => {
+    Linking.openURL(url).catch(err => {
+      console.error("Failed to open URL:", err);
+      alert('Unable to open the document');
+    })};
 
   const formatDate = (timestamp) => {
     try {
@@ -252,18 +256,21 @@ const PatientDetail = () => {
     
         <Text style={styles.tableHeaderText}>Reference</Text>
         <Text style={styles.tableHeaderText}>Test Results</Text>
+        <Text style={styles.tableHeaderText}>Attachment</Text>
       </View>
       <FlatList
         data={labTests}
         renderItem={({ item }) => (
           <View style={styles.tableRow}>
             <Text style={styles.tableCell}>{item.testName}</Text>
-       
             <Text style={styles.tableCell}>{item.referenceRanges}</Text>
             <Text style={styles.tableCell}>{item.testResults}</Text>
+            <TouchableOpacity onPress={() => openDocument(item.attachedFile)}>
+              <Text style={styles.linkStyle}>View Result</Text>
+            </TouchableOpacity>
           </View>
         )}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.id.toString()}
       />
 
 
@@ -300,7 +307,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-marginBottom: 10,
+    marginBottom: 20,
   },
   patientImage: {
     width: 150, // Adjust as needed
@@ -339,6 +346,7 @@ marginBottom: 10,
     borderBottomColor: '#eee',
     backgroundColor: 'white',
     padding: 3,
+    marginBottom: 10,
   },
   tableCell: {
     flex: 1,
