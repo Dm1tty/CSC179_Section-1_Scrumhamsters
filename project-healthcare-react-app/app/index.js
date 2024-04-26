@@ -36,7 +36,7 @@ export default function Index() {
 
   async function fetchDoctorData(user) {
     setLoading(true);
-
+  
     const docRef = doc(db, "doctors", user.uid);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
@@ -45,15 +45,18 @@ export default function Index() {
     } else {
       console.log("No such document for doctor's name!");
     }
-
-    const q = query(collection(db, "appointments"), where("doctor", "==", user.uid), where("status", "==", "Upcoming")  // Only fetch appointments with status "Upcoming" and assigned to the currently signed in doctor
-  );
+  
+    const q = query(collection(db, "appointments"), where("doctor", "==", user.uid), where("status", "==", "Upcoming"));
     const querySnapshot = await getDocs(q);
     const appointmentsWithPatientInfo = await Promise.all(querySnapshot.docs.map(async (docSnapshot) => {
-      const appointment = docSnapshot.data();
+      const appointment = {
+        id: docSnapshot.id, // Capture the document ID here
+        ...docSnapshot.data(),
+        date: new Date(docSnapshot.data().date.seconds * 1000) // Assuming 'date' is a Firestore Timestamp
+      };
+  
       const patientRef = doc(db, "patients", appointment.patient);
       const patientSnap = await getDoc(patientRef);
-
       if (patientSnap.exists()) {
         const patientData = patientSnap.data();
         return {
@@ -61,15 +64,50 @@ export default function Index() {
           patientName: patientData.lastName + ", " + patientData.firstName,
           patientGender: patientData.gender,
           patientDOB: patientData.dateOfBirth,
-          patientPicture: patientData.image
+          patientPicture: patientData.image,
         };
       }
       return appointment;
     }));
-
+  
+    appointmentsWithPatientInfo.sort((a, b) => a.date - b.date); // Sort by date
     setAppointments(appointmentsWithPatientInfo);
     setLoading(false);
   }
+  
+  const groupAppointments = (appointments) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize today's date
+  
+    const groups = appointments.reduce((acc, appointment) => {
+      const appointmentDate = appointment.date;
+      appointmentDate.setHours(0, 0, 0, 0); // Normalize appointment date
+  
+      const diffTime = appointmentDate - today;
+      const diffDays = diffTime / (1000 * 3600 * 24);
+  
+      let key;
+      if (diffDays < 0) {
+        key = 'Past';
+      } else if (diffDays === 0) {
+        key = 'Today';
+      } else if (diffDays === 1) {
+        key = 'Tomorrow';
+      } else {
+        key = appointment.date.toDateString();
+      }
+  
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(appointment);
+      return acc;
+    }, {});
+  
+    return groups;
+  };
+
+  const appointmentSections = groupAppointments(appointments);
 
   const toggleMenu = () => {
     setMenuVisible(!menuVisible);
@@ -108,23 +146,29 @@ export default function Index() {
       <StatusBar style="auto" />
       <Image source={{ uri: doctorImage }} style={styles.topImage} />
       <Text style={styles.greeting}>Hi, {doctorName}</Text>
-      <View style={styles.table}>
-      <Text style={styles.greeting}>Upcoming appointments</Text>
-        {appointments.map((appointment, index) => (
-          <View key={index} style={styles.row}>
-            <Image source={{ uri: appointment.patientPicture || 'https://via.placeholder.com/150' }} style={styles.rowImage} />
-            <View style={styles.rowTextContainer}>
-              <Text style={styles.rowText}>Patient: {appointment.patientName}</Text>
-              <Text style={styles.rowText}>Gender: {appointment.patientGender}</Text>
-              <Text style={styles.rowText}>Age: {calculateAge(appointment.patientDOB)}</Text>
-              <Text style={styles.rowText}>Reason: {appointment.reason || 'N/A'}</Text>
-              <Text style={styles.rowText}>Date: {formatDate(appointment.date)}</Text>
-              <Text style={styles.rowText}>Time: {appointment.time}</Text>
-              </View>
-            </View>
-          ))}
+      {Object.entries(appointmentSections).map(([sectionName, sectionAppointments]) => (
+  <View key={sectionName} style={styles.table}>
+    <Text style={styles.sectionHeader}>{sectionName}</Text>
+    {sectionAppointments.map((appointment, index) => (
+      <TouchableOpacity
+        key={index}
+        style={styles.row}
+        onPress={() => navigation.navigate('appointment_detail', { appointmentId: appointment.id })}
+      >
+        <Image source={{ uri: appointment.patientPicture || 'https://via.placeholder.com/150' }} style={styles.rowImage} />
+        <View style={styles.rowTextContainer}>
+          <Text style={styles.rowText}>Patient: {appointment.patientName}</Text>
+          <Text style={styles.rowText}>Gender: {appointment.patientGender}</Text>
+          <Text style={styles.rowText}>Age: {calculateAge(appointment.patientDOB)}</Text>
+          <Text style={styles.rowText}>Reason: {appointment.reason || 'N/A'}</Text>
+          <Text style={styles.rowText}>Date: {appointment.date.toDateString()}</Text>
+          <Text style={styles.rowText}>Time: {appointment.time}</Text>
         </View>
-      </ScrollView>
+      </TouchableOpacity>
+    ))}
+  </View>
+))}
+    </ScrollView>
       <TouchableOpacity style={styles.fab} onPress={toggleMenu}>
         <Text style={styles.fabIcon}>+</Text>
       </TouchableOpacity>
@@ -193,6 +237,10 @@ const styles = StyleSheet.create({
   table: {
     width: '100%',
     paddingHorizontal: 20, // Adjust padding instead of setting width to '90%'
+
+  },
+  sectionHeader:{
+    fontWeight: 'bold',
   },
   rowImage: {
     width: 50,
