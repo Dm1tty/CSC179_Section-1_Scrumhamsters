@@ -108,13 +108,43 @@ const PatientDetail = () => {
   };
 
   const toFirestoreTimestamp = (dateValue) => {
-    const date = new Date(dateValue);
+    let date;
+  
+    // Check if dateValue is a Firestore Timestamp and convert to JavaScript Date
+    if (dateValue instanceof Timestamp) {
+      date = dateValue.toDate();
+    } else if (dateValue instanceof Date) {
+      date = dateValue;
+    } else {
+      try {
+        // Assuming dateValue is a string that can be converted to a Date
+        date = new Date(dateValue);
+      } catch (error) {
+        console.error("Failed to convert dateValue to Date:", dateValue);
+        throw error;
+      }
+    }
+  
+    // Validate the date object
+    if (isNaN(date.getTime())) {
+      console.error("Invalid date input after conversion:", dateValue);
+      throw new Error("Invalid date input");
+    }
+  
     return Timestamp.fromDate(date);
   };
+  
+  
+  
 
   const formatDate = (timestamp) => {
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+    try {
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+    } catch (error) {
+      console.error("Failed to format date:", timestamp);
+      return "Invalid date"; // Provide a fallback message
+    }
   };
 
   if (!patientDetails) {
@@ -270,7 +300,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-
+marginBottom: 10,
   },
   patientImage: {
     width: 150, // Adjust as needed
@@ -293,7 +323,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 5,
-    marginTop: 20,
+    marginTop: 10,
     backgroundColor: '#f0f0f0',
   },
   tableHeaderText: {
@@ -308,11 +338,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
     backgroundColor: 'white',
-    padding: 10,
+    padding: 3,
   },
   tableCell: {
     flex: 1,
     textAlign: 'center',
+    fontSize: 14,
   },
   actions: {
     flexDirection: 'row',
@@ -321,7 +352,7 @@ const styles = StyleSheet.create({
   sectionHeader: {
     fontSize: 14,
     fontWeight: 'bold',
-    marginTop: 20,
+    marginTop: 10,
     marginBottom: 10,
     backgroundColor: 'white'
 

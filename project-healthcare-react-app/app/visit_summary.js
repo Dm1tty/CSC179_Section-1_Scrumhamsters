@@ -106,7 +106,7 @@ const VisitScreen = () => {
           value={patientData ? `${patientData.lastName}, ${patientData.firstName}` : ''}
           editable={false} // Assuming you don't want this field to be editable
         />
-        <Text style={styles.label}>Assign Doctor</Text>
+        <Text style={styles.label}>Assigned Doctor</Text>
         <TextInput
           style={styles.input}
           value={doctor ? `${doctor.lastName}, ${doctor.firstName}` : ''}

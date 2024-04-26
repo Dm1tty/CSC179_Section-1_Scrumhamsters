@@ -107,6 +107,11 @@ const AppointmentDetailScreen = () => {
           text: "Confirm",
           onPress: () => {
             console.log("Confirmed cancellation");
+
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'index' }],
+            });
             cancelAppointment();
           }
         }
@@ -156,6 +161,10 @@ const AppointmentDetailScreen = () => {
 
 
   const updateAppointment = async () => {
+
+    console.log('newDateTime:', newDateTime);
+    console.log('Timestamp:', Timestamp.fromDate(newDateTime));
+    console.log('Formatted Time:', formatTimeForFirestore(newDateTime));
     const appointmentRef = doc(db, 'appointments', appointmentId);
     try {
       await updateDoc(appointmentRef, {
@@ -167,11 +176,13 @@ const AppointmentDetailScreen = () => {
       console.log('Appointment rescheduled successfully');
       Alert.alert(
         "Appointment Rescheduled",
+        "Your appointment has been rescheduled successfully.",
         [
-
           {
             text: "Okay",
             onPress: () => {
+              console.log('Pressed OK');
+              // navigation reset or other navigation code here
               navigation.reset({
                 index: 0,
                 routes: [{ name: 'index' }],
@@ -268,24 +279,24 @@ const AppointmentDetailScreen = () => {
           <Text style={styles.value}>{appointment.reason}</Text>
         </View>
 
-        </View>
-        {isPickerShow && (
-          <>
-            <Text style={styles.tagContainer}>Reschedule</Text>
-            <DateTimePicker
-              value={newDateTime}
-              mode="datetime"
-              is24Hour={true}
-              display="default"
-              onChange={handleDateChange}
-            />
-            <TouchableOpacity onPress={confirmRescheduling} style={styles.button}>
-              <Text style={styles.buttonText}>Confirm Reschedule</Text>
-            </TouchableOpacity>
-          </>
-        )}
+      </View>
+      {isPickerShow && (
+        <>
+          <Text style={styles.tagContainer}>Reschedule</Text>
+          <DateTimePicker
+            value={newDateTime}
+            mode="datetime"
+            is24Hour={true}
+            display="default"
+            onChange={handleDateChange}
+          />
+          <TouchableOpacity onPress={confirmRescheduling} style={styles.button}>
+            <Text style={styles.buttonText}>Confirm Reschedule</Text>
+          </TouchableOpacity>
+        </>
+      )}
 
-      
+
 
     </View>
   );
