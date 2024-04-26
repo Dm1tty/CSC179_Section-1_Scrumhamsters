@@ -326,6 +326,11 @@ const styles = StyleSheet.create({
     margin: 10,
     borderRadius: 5,
   },
+  linkStyle: {
+    color: 'blue',
+    textDecorationLine: 'underline',
+    textAlign: 'center',
+  },
   tableHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
