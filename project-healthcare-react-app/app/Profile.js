@@ -134,14 +134,14 @@ export default function Profile() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    
   },
   upperSection: {
     alignItems: 'center',
     marginBottom: 20,
   },
   avatar: {
+    marginTop: 20,
     width: 150,
     height: 150,
     

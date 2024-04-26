@@ -30,7 +30,8 @@ const AppointmentsPage = () => {
           patientName: patientData?.firstName + " " + patientData.lastName,
           dob: patientData?.dateOfBirth, 
           time: data.time || 'N/A',
-          date: appointmentDate
+          date: appointmentDate,
+          image: patientData?.image
         };
       });
 
@@ -81,7 +82,11 @@ const AppointmentsPage = () => {
             <TouchableOpacity key={appointment.id} onPress={() => navigateToAppointmentDetails(appointment.id)}>
               <View style={styles.appointmentItem}>
                 <View style={styles.appointmentItemRow}>
-                  <Image source={require('../assets/favicon.png')} style={styles.icon} />
+                {appointment.image ? (
+                <Image source={{ uri: appointment.image }} style={styles.icon} />
+              ) : (
+                <Image source={require('../assets/favicon.png')} style={styles.icon} />
+              )}
                   <View style={styles.appointmentDetails}>
                     <Text style={styles.appointmentTitle}>{appointment.patientName || "No Name"}</Text>
                     <Text style={styles.appointmentText}>DOB: {appointment.dob}</Text>
@@ -104,7 +109,6 @@ const AppointmentsPage = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: '#fff',
   },
   header: {
@@ -112,7 +116,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
+    padding: 20,
   },
+
   pageTitle: {
     fontSize: 22,
     fontWeight: 'bold',
@@ -132,6 +138,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   appointmentsList: {
+    padding: 20,
     flex: 1,
   },
   appointmentItemRow: {
@@ -139,9 +146,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   icon: {
-    width: 30, // Set the size of your icon
-    height: 30, // Set the size of your icon
+    width: 65, // Set the size of your icon
+    height: 65, // Set the size of your icon
     marginRight: 10, // Add some space between the icon and the text
+    borderRadius: 32.5,
   },
   appointmentDetails: {
     flex: 1, // Allow the details to fill the remaining space

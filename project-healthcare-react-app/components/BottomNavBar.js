@@ -25,6 +25,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#ddd',
     width: '100%', // Use the full width of the device
     padding: 10,
+    position: 'absolute', // Position the navbar absolutely relative to its parent
+    bottom: 0, // Anchor the navbar to the bottom
+    left: 0, // Align it to the left side to ensure full width
   },
   navLink: {
     padding: 10,

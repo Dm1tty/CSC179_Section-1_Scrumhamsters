@@ -145,6 +145,9 @@ export default function Index() {
             <View style={styles.buttonContainer}>
               <Button title="Create a Prescription" onPress={() => { navigation.navigate('CreatePrescription'); toggleMenu(); }} />
             </View>
+            <View style={styles.buttonContainer}>
+              <Button title="Enter Lab Results" onPress={() => { navigation.navigate('LabEntryPage'); toggleMenu(); }} />
+            </View>
           </View>
         </TouchableOpacity>
       </Modal>

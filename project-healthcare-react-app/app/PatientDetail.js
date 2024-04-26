@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Button, TextInput, FlatList, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, Button, TextInput, FlatList, Image, Alert, Platform, ScrollView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { db } from '../firebaseConfig';
-import { doc, getDoc, getDocs, collection, updateDoc, Timestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, Timestamp, collection, getDocs } from 'firebase/firestore';
 import RNPickerSelect from 'react-native-picker-select';
 import illnessesList from '../assets/illnesses.json'
 
-import * as ImagePicker from 'expo-image-picker';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { Platform } from 'react-native';
+import { getPermissionAsync, pickImageAndUpdate } from '../components/imageHandler'; // Adjust the import path as necessary
+
 
 const PatientDetail = () => {
   const route = useRoute();
@@ -17,11 +16,18 @@ const PatientDetail = () => {
   const [illnesses, setIllnesses] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIllness, setSelectedIllness] = useState('');
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [labTests, setLabTests] = useState([]);
+
+
+
 
   useEffect(() => {
     const fetchPatientDetails = async () => {
       const docRef = doc(db, 'patients', id);
       const docSnap = await getDoc(docRef);
+
+
 
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -31,10 +37,27 @@ const PatientDetail = () => {
         console.log("No such document!");
       }
     };
-
+    fetchPrescriptions();
     fetchPatientDetails();
+    fetchLabTests(); // Fetch lab tests
+
+    getPermissionAsync(); // Ensure permissions are requested at component mount
   }, [id]);
 
+  
+  const fetchLabTests = async () => {
+    const labTestsRef = collection(db, 'patients', id, 'labResults');
+    const snapshot = await getDocs(labTestsRef);
+    const labsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setLabTests(labsList);
+  };
+
+  const fetchPrescriptions = async () => {
+    const prescriptionsRef = collection(db, 'patients', id, 'prescriptions');
+    const snapshot = await getDocs(prescriptionsRef);
+    const prescriptionsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setPrescriptions(prescriptionsList);
+  };
   const updateFirestoreIllnesses = async (updatedIllnesses) => {
     const patientRef = doc(db, 'patients', id);
     await updateDoc(patientRef, {
@@ -44,108 +67,6 @@ const PatientDetail = () => {
       })),
     });
   };
-
-  const getPermissionAsync = async () => {
-    if (Platform.OS !== 'web') {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        alert('Sorry, we need camera roll permissions to make this work!');
-        return;
-      }
-    }
-  };
-  
-  const pickImageAndUpdate = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.All,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-    });
-
-    if (!result.cancelled) {
-        const imageUri = result.assets[0].uri; // Make sure to access the uri correctly
-        uploadImageAndGetURL(imageUri).then((imageUrl) => {
-            updatePatientImageUrl(imageUrl);
-        }).catch((error) => {
-            console.error("Error uploading image:", error);
-            Alert.alert("Upload Failed", "There was an issue uploading your image.");
-        });
-    }
-};
-  
-const uploadImageAndGetURL = async (imageUri) => {
-  try {
-      const blob = await (await fetch(imageUri)).blob();
-      const storageRef = ref(getStorage(), `patient_images/${id}_${Date.now()}`);
-      await uploadBytes(storageRef, blob);
-      const downloadURL = await getDownloadURL(storageRef);
-      return downloadURL;
-  } catch (error) {
-      console.error("Error uploading image:", error);
-      Alert.alert("Upload Failed", "There was an issue uploading the patient image.");
-      throw new Error("Failed to upload image"); // It's important to throw an error so you can catch it outside
-  }
-};
-const updatePatientImageUrl = async (imageUrl) => {
-  try {
-      const patientRef = doc(db, 'patients', id);
-      await updateDoc(patientRef, {
-          image: imageUrl,
-      });
-
-      // Update local state to reflect the new image without refetching from Firestore
-      setPatientDetails(prevState => ({
-          ...prevState,
-          image: imageUrl,
-      }));
-
-      Alert.alert("Image Updated", "The patient's profile image has been successfully updated.");
-  } catch (error) {
-      console.error("Error updating patient image:", error);
-      Alert.alert("Update Failed", "Failed to update the patient's profile image.");
-  }
-};
-
-  const addIllness = async () => {
-    console.log("Attempting to add illness:", selectedIllness);
-    if (selectedIllness) {
-      const newIllness = {
-        id: new Date().getTime(), // Use current timestamp as a makeshift ID
-        name: selectedIllness,
-        status: 'current',
-        modifiedDate: Timestamp.fromDate(new Date()),
-      };
-      const updatedIllnesses = [...illnesses, newIllness];
-      console.log("Updated Illnesses:", updatedIllnesses);
-      setIllnesses(updatedIllnesses);
-      await updateFirestoreIllnesses(updatedIllnesses);
-      setSelectedIllness('');
-      setSearchTerm('');
-    } else {
-      console.log("No illness selected");
-    }
-  };
-
-
-
-  const toFirestoreTimestamp = (dateValue) => {
-    if (dateValue?.toDate) {
-      return Timestamp.fromDate(dateValue.toDate());
-    }
-    const date = new Date(dateValue);
-    if (!isNaN(date)) {
-      return Timestamp.fromDate(date);
-    }
-    return Timestamp.fromDate(new Date());
-  };
-
-  const formatDate = (timestamp) => {
-    if (!timestamp) return '';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
-  };
-
 
   const moveIllnessToPast = async (illnessId) => {
     const updatedIllnesses = illnesses.map((illness) => {
@@ -168,24 +89,55 @@ const updatePatientImageUrl = async (imageUrl) => {
     .filter(illness => illness.toLowerCase().includes(searchTerm.toLowerCase()))
     .map(illness => ({ label: illness, value: illness }));
 
+  const addIllness = async () => {
+    if (selectedIllness) {
+      const newIllness = {
+        id: new Date().getTime(), // Use current timestamp as a makeshift ID
+        name: selectedIllness,
+        status: 'current',
+        modifiedDate: Timestamp.fromDate(new Date()),
+      };
+      const updatedIllnesses = [...illnesses, newIllness];
+      setIllnesses(updatedIllnesses);
+      await updateFirestoreIllnesses(updatedIllnesses);
+      setSelectedIllness('');
+      setSearchTerm('');
+    } else {
+      console.log("No illness selected");
+    }
+  };
+
+  const toFirestoreTimestamp = (dateValue) => {
+    const date = new Date(dateValue);
+    return Timestamp.fromDate(date);
+  };
+
+  const formatDate = (timestamp) => {
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+  };
+
   if (!patientDetails) {
     return <Text>Loading patient details...</Text>;
   }
 
   return (
-    <View style={styles.container}>
-      {patientDetails.image ? (
-      <Image source={{ uri: patientDetails.image }} style={styles.patientImage} />
-    ) : (
-      <Text>No image available</Text>
-    )}
-    <Button title="Change Picture" onPress={pickImageAndUpdate} />
+    <ScrollView style={styles.container}>
+      <View style={styles.imageContainer}>
+        {patientDetails.image ? (
+          <Image source={{ uri: patientDetails.image }} style={styles.patientImage} />
+        ) : (
+          <Text>No image available</Text>
+        )}
+        <Button title="Change Picture" onPress={pickImageAndUpdate} />
 
-    <Text>Patient ID: {id}</Text>
-    <Text>Name: {patientDetails.lastName}, {patientDetails.firstName}</Text>
-    <Text>Date of Birth: {patientDetails.dateOfBirth}</Text>
-    <Text>Gender: {patientDetails.gender}</Text>
-    
+        <Text>Patient ID: {id}</Text>
+        <Text>Name: {patientDetails.lastName}, {patientDetails.firstName}</Text>
+        <Text>Date of Birth: {patientDetails.dateOfBirth}</Text>
+        <Text>Gender: {patientDetails.gender}</Text>
+      </View>
+
+
       <TextInput
         style={styles.input}
         placeholder="Type to search illnesses..."
@@ -242,7 +194,52 @@ const updatePatientImageUrl = async (imageUrl) => {
         )}
         keyExtractor={(item, index) => `${item.name}_${index}`}
       />
-    </View>
+
+      <Text style={styles.sectionHeader}>Prescriptions</Text>
+      <View style={styles.tableHeader}>
+        <Text style={styles.tableHeaderText}>Medication</Text>
+        <Text style={styles.tableHeaderText}>Strength</Text>
+        <Text style={styles.tableHeaderText}>Frequency</Text>
+        <Text style={styles.tableHeaderText}>Duration</Text>
+        <Text style={styles.tableHeaderText}>Purpose</Text>
+      </View>
+      <FlatList
+        data={prescriptions}
+        renderItem={({ item }) => (
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCell}>{item.medication}</Text>
+            <Text style={styles.tableCell}>{item.strength}</Text>
+            <Text style={styles.tableCell}>{item.frequency}</Text>
+            <Text style={styles.tableCell}>{item.duration}</Text>
+            <Text style={styles.tableCell}>{item.purpose}</Text>
+          </View>
+        )}
+        keyExtractor={item => item.id}
+      />
+   <Text style={styles.sectionHeader}>Labs</Text>
+      <View style={styles.tableHeader}>
+        <Text style={styles.tableHeaderText}>Test Name</Text>
+    
+        <Text style={styles.tableHeaderText}>Reference</Text>
+        <Text style={styles.tableHeaderText}>Test Results</Text>
+      </View>
+      <FlatList
+        data={labTests}
+        renderItem={({ item }) => (
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCell}>{item.testName}</Text>
+       
+            <Text style={styles.tableCell}>{item.referenceRanges}</Text>
+            <Text style={styles.tableCell}>{item.testResults}</Text>
+          </View>
+        )}
+        keyExtractor={item => item.id}
+      />
+
+
+
+
+    </ScrollView>
   );
 }
 
@@ -273,15 +270,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-    
+
   },
   patientImage: {
     width: 150, // Adjust as needed
     height: 150, // Adjust as needed
     borderRadius: 75, // For a rounded image
-    marginVertical: 10, // Optional: add some vertical spacing
-    alignItems: 'center',
-    
+
+  },
+  imageContainer: {
+    alignItems: 'center',  // This aligns children (the image) horizontally
+    marginVertical: 10,
   },
   input: {
     borderWidth: 1,
@@ -293,13 +292,13 @@ const styles = StyleSheet.create({
   tableHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 10,
+    padding: 5,
     marginTop: 20,
     backgroundColor: '#f0f0f0',
   },
   tableHeaderText: {
     flex: 1,
-    fontWeight: 'bold',
+    fontWeight: 'normal',
     textAlign: 'center',
   },
   tableRow: {
@@ -308,6 +307,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    backgroundColor: 'white',
     padding: 10,
   },
   tableCell: {
@@ -319,10 +319,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
   },
   sectionHeader: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: 'bold',
     marginTop: 20,
     marginBottom: 10,
+    backgroundColor: 'white'
+
   },
 });
 

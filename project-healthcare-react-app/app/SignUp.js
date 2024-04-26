@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet } from 'react-native';
+import { View, TextInput, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { useNavigation } from '@react-navigation/native';
+import appIcon from '../assets/Notes.png';  // Adjust the path as necessary
 
 export default function SignUpScreen() {
   const auth = getAuth();
@@ -23,38 +24,66 @@ export default function SignUpScreen() {
     navigation.navigate('signin'); // Replace 'SignIn' with your actual SignIn screen route name
   };
 
-  return (
-    <View style={styles.container}>
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={text => setEmail(text)}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Password"
-        value={password}
-        secureTextEntry
-        onChangeText={text => setPassword(text)}
-        style={styles.input}
-      />
-      <Button title="Sign Up" onPress={handleSignUp} />
-      <Button title="Already have an account? Sign In" onPress={navigateToSignIn} />
-    </View>
-  );
-}
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Patient Diary</Text>
+        <Image source={appIcon} style={styles.image} />
+        <TextInput
+          placeholder="Email"
+          value={email}
+          onChangeText={text => setEmail(text)}
+          style={styles.input}
+        />
+        <TextInput
+          placeholder="Password"
+          value={password}
+          secureTextEntry
+          onChangeText={text => setPassword(text)}
+          style={styles.input}
+        />
+        <TouchableOpacity style={styles.button} onPress={handleSignUp}>
+          <Text style={styles.buttonText}>Sign Up</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={navigateToSignIn}>
+          <Text style={styles.buttonText}>Already have an account? Sign In</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'top',
     alignItems: 'center',
+    backgroundColor: '#1EB6B9',
   },
   input: {
-    width: 300,
+    width: '90%',
     padding: 10,
     margin: 10,
     borderWidth: 1,
-    borderColor: 'gray',
+    borderColor: 'white',
+    color: 'white',
+borderRadius: 10,
+  },
+  title: {
+    marginTop: 20, // Adjust the spacing as needed
+    fontSize: 40, // Adjust the font size as neededr
+    fontWeight: 'bold',
+    color: 'white', // Adjust the color to match the screenshot
+  },
+  button: {
+    backgroundColor: 'white',
+    paddingVertical: 15,
+    paddingHorizontal: 60,
+    borderRadius: 10,
+    marginTop: 20,
+    color: 'white',
+  
+  },
+  image: {
+    width: 150,  // Adjust the size as needed
+    height: 150,  // Adjust the size as needed
   },
 });

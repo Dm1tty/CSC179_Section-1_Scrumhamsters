@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, Dimensions } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { db } from '../firebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
+const { width } = Dimensions.get('window'); // Gets the full width of the device screen
 
 const VisitScreen = () => {
 
@@ -21,6 +22,7 @@ const VisitScreen = () => {
   const { patientData, appointmentId, patientId } = route.params ?? {};
 
   useEffect(() => {
+
     const fetchAppointmentAndDoctor = async () => {
       if (!patientId || !appointmentId) {
         console.error("Required IDs are not available:", {patientId, appointmentId});
@@ -90,7 +92,9 @@ const VisitScreen = () => {
   };
 
   return (
+    
     <View >
+      
       <View style={styles.header}>
 
         <Text style={styles.headerTitle}>Visit Summary</Text>
@@ -155,15 +159,6 @@ const VisitScreen = () => {
           onChangeText={setVisitSummary}
         />
 
-       
-        <View style={styles.uploadContainer}>
-          <Image
-            source={require('../assets/upload-icon.png')}
-            style={{ width: 18, height: 18, marginEnd: 20 }}
-          />
-          {/* <Icon name="file" size={24} color="#1EB6B9" style={styles.uploadIcon} /> */}
-          <Text style={styles.uploadText}>Upload Prescription</Text>
-        </View>
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
           <Text style={styles.buttonText}>Submit</Text>
         </TouchableOpacity>
@@ -174,97 +169,75 @@ const VisitScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-  },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
     backgroundColor: '#1EB6B9',
-    padding: 20,
-    marginTop: 20
-  },
-  backButton: {
-    marginRight: 20,
-    marginTop: 10
+    padding: 15,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e1e1e1',
+    
   },
   headerTitle: {
     fontSize: 18,
-    color: 'white',
-    flex: 1,
-    textAlign: "center",
-    marginTop: 10
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  container: {
+    padding: 15,
   },
   label: {
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: 'bold',
     marginBottom: 5,
-    marginTop: 10,
-    color: '#888888'
+    color: '#666',
   },
   input: {
+    marginBottom: 15,
+    padding: 10,
     borderWidth: 1,
-    borderColor: "#F2F2F2",
+    borderColor: '#ccc',
     borderRadius: 5,
-    padding: 5,
-    fontSize: 12,
-    backgroundColor: '#ccc',
+    fontSize: 16,
+    backgroundColor: '#fff',
   },
   rowContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   halfWidth: {
-    width: "48%",
-  },
-  heightWeightContainer: {
-    marginBottom: 0,
-  },
-  dateInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "#ccc",
-    borderRadius: 5,
+    width: width / 2 - 20, // Gives half width minus some margin for spacing
     padding: 10,
   },
-  calendarIcon: {
-    marginLeft: 10,
-  },
-
-  uploadContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 20,
-    padding: 15,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
+  heightWeightContainer: {
     alignItems: 'center',
-    justifyContent: "center",
-
   },
-  uploadIcon: {
-    marginRight: 10,
+  uploadContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
   },
   uploadText: {
-    fontSize: 14,
-    color: '#1EB6B9'
+    fontSize: 16,
+    color: '#1EB6B9', // Example color
   },
   button: {
     backgroundColor: '#1EB6B9',
-    paddingVertical: 15,
-    paddingHorizontal: 60,
-    borderRadius: 10,
-    marginTop: 20,
-
+    borderRadius: 5,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    marginTop: 10,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    textAlign: 'center',
   },
 });
 
