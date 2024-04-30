@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, Text, StyleSheet, Platform, Alert } from 'react-native';
+import { View, TextInput, Button, Text, StyleSheet, Platform, Alert, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import DatePicker from '@react-native-community/datetimepicker';
 import { startOfDay, addMinutes, format } from 'date-fns';
 
-import { db } from '../firebaseConfig'; 
+import { db } from '../firebaseConfig';
 import { collection, addDoc, Timestamp, getDocs } from 'firebase/firestore';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 import RNPickerSelect from 'react-native-picker-select'; // Import the picker
 
+const { width, height } = Dimensions.get('window');
 
 const CreateAppointmentScreen = () => {
     const navigation = useNavigation();
@@ -46,46 +48,32 @@ const CreateAppointmentScreen = () => {
     }, []);
 
 
-    const onChangeDate = (event, selectedDate) => {
-        setShowDatePicker(Platform.OS === 'ios'); // For iOS, to keep the picker open
+    const onChangeDateTime = (event, selectedDate) => {
         const currentDate = selectedDate || date;
+        setShowDatePicker(Platform.OS === 'ios');
         setDate(currentDate);
     };
 
-    const dateString = format(date, "PPP"); // Format the date into a readable string
 
 
-    const generateTimeOptions = () => {
-        let times = [];
-        let startTime = startOfDay(new Date()); // Reset to the start of today
-        startTime = addMinutes(startTime, 8 * 60); // Move to 8:00 AM
-      
-        for (let i = 0; i <= 23; i++) { // 8AM to 7:30PM
-          let timeSlot = addMinutes(startTime, 30 * i);
-          times.push({
-            label: format(timeSlot, 'h:mm a'), // Example: "8:00 AM"
-            value: format(timeSlot, 'HH:mm') // Example: "08:00" for easier backend handling
-          });
-        }
-      
-        return times;
-      };
+
 
     const saveAppointment = async () => {
         try {
-
+            const formattedTime = format(date, 'HH:mm'); // Formats the date object to time string "HH:mm"
+    
             const dateOnly = new Date(date);
             dateOnly.setHours(0, 0, 0, 0); // Reset the time part to midnight
-
+    
             const docRef = await addDoc(collection(db, "appointments"), {
-                
                 doctor,
                 patient,
                 date: Timestamp.fromDate(dateOnly), // Firestore Timestamp for the date
-                time: appointmentTime, // Save the selected time
+                time: formattedTime, // Save the formatted time
                 reason,
                 status: 'Upcoming'
             });
+    
             Alert.alert(
                 "Success", // Alert Title
                 "Appointment saved successfully!", // Alert Message
@@ -107,15 +95,16 @@ const CreateAppointmentScreen = () => {
     
 
 
+
     return (
         <View style={styles.container}>
+            <Text style={styles.label}>Schedule an Appointment</Text>
             <RNPickerSelect
                 onValueChange={(value) => setDoctor(value)}
                 items={doctors}
                 style={pickerSelectStyles}
                 placeholder={{ label: "Select a doctor", value: null }}
             />
-
             <RNPickerSelect
                 onValueChange={(value) => setPatient(value)}
                 items={patients}
@@ -123,37 +112,29 @@ const CreateAppointmentScreen = () => {
                 placeholder={{ label: "Select a patient", value: null }}
             />
 
-
-
             <View style={styles.datePickerContainer}>
-                <Text style={styles.label}>Date</Text>
+                <Text style={styles.label}>Date and Time</Text>
+                <View style={styles.leftAlignContainer}>
+                    <Button title="Set Date and Time" onPress={() => setShowDatePicker(true)} />
+                </View>
                 <TextInput
                     style={styles.input}
-                    placeholder="Select Date"
-                    value={dateString}
-                    onFocus={() => setShowDatePicker(true)} // Open date picker when the text input is focused
-                    editable={false} // Prevent manual editing
+                    placeholder="Select Date and Time"
+                    value={date.toLocaleString()}
+                    onFocus={() => setShowDatePicker(true)}
+                    editable={false}
                 />
                 {showDatePicker && (
-                    <DatePicker
+                    <DateTimePicker
                         value={date}
-                        mode="date"
+                        mode="datetime"
                         display="default"
-                        onChange={onChangeDate}
-                        maximumDate={new Date(2025, 11, 31)} // Example: Set a maximum date
+                        onChange={onChangeDateTime}
+                        maximumDate={new Date(2025, 11, 31)}
                     />
                 )}
-
-                <RNPickerSelect
-                    onValueChange={(value) => setAppointmentTime(value)}
-                    items={generateTimeOptions()}
-                    placeholder={{ label: "Select a time", value: null }}
-                />
-
-                <Button title="Set Date" onPress={() => setShowDatePicker(true)} />
-
-
             </View>
+
             <TextInput
                 style={styles.input}
                 placeholder="Reason"
@@ -166,49 +147,59 @@ const CreateAppointmentScreen = () => {
         </View>
     );
 };
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 20,
+        justifyContent: 'space-between', // Adjusts spacing dynamically
+    },
+    label: {
+        fontSize: width * 0.045, // Responsive font size based on screen width
+        marginBottom: 10,
+    },
+    input: {
+        borderWidth: 1,
+        borderColor: '#cccccc',
+        borderRadius: 5,
+        padding: 10,
+        marginBottom: 20,
+        width: '100%', // Ensures the input takes full width available
+        fontSize: width * 0.04, // Smaller responsive font size
+    },
+    datePickerContainer: {
+        marginBottom: 20,
+        width: '100%', // Full width to accommodate internal elements
+    },
+    leftAlignContainer: {
+        alignSelf: 'flex-start',
+        marginBottom: 10,
+    },
+});
+
 const pickerSelectStyles = StyleSheet.create({
     inputIOS: {
-        fontSize: 16,
+        fontSize: width * 0.04,
         paddingVertical: 12,
         paddingHorizontal: 10,
         borderWidth: 1,
         borderColor: 'gray',
         borderRadius: 4,
         color: 'black',
-        paddingRight: 30, // To ensure the dropdown icon doesn't overlap the text
+        paddingRight: 30,
+        marginBottom: 20,
     },
     inputAndroid: {
-        fontSize: 16,
+        fontSize: width * 0.04,
         paddingHorizontal: 10,
         paddingVertical: 8,
         borderWidth: 0.5,
         borderColor: 'purple',
         borderRadius: 8,
         color: 'black',
-        paddingRight: 30, // To ensure the dropdown icon doesn't overlap the text
+        paddingRight: 30,
+        marginBottom: 20,
     },
-});
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-    },
-    input: {
-        marginBottom: 15,
-        borderWidth: 1,
-        borderColor: '#cccccc',
-        borderRadius: 5,
-        padding: 10,
-    },
-    datePickerContainer: {
-        marginBottom: 15,
-    },
-    label: {
-        fontSize: 16,
-        marginBottom: 10,
-    },
-
 });
 
 export default CreateAppointmentScreen;
