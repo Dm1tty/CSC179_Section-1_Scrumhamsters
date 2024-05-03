@@ -1,11 +1,19 @@
+<<<<<<< Updated upstream
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Button, ScrollView, TextInput, Image, TouchableOpacity } from 'react-native';
+=======
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Button, ScrollView, TextInput, TouchableOpacity, Image } from 'react-native';
+import { collection, getDocs, getDoc, doc } from 'firebase/firestore'; // Ensure you import `doc`
+import { db } from '../firebaseConfig';
+>>>>>>> Stashed changes
 import BottomNavBar from '../components/BottomNavBar';
 
 
 const AppointmentsPage = () => {
   const [selectedTab, setSelectedTab] = useState('Upcoming');
   const [searchQuery, setSearchQuery] = useState('');
+<<<<<<< Updated upstream
 
 <<<<<<< Updated upstream
   const appointments = [
@@ -29,6 +37,10 @@ const AppointmentsPage = () => {
            appointment.patientName.toLowerCase().includes(searchQuery.toLowerCase());
   });
 =======
+=======
+  const [appointments, setAppointments] = useState([]);
+
+>>>>>>> Stashed changes
   const navigation = useNavigation(); // Initialize navigation hook
 
   const navigateToAppintDeatilPage = (appointment) => {
@@ -65,13 +77,24 @@ const AppointmentsPage = () => {
 
     fetchAppointments();
   }, []);
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.pageTitle}>Appointments</Text>
+<<<<<<< Updated upstream
         <TextInput placeholder="Search by name" onChangeText={setSearchQuery} style={styles.searchInput} />
+=======
+        <TextInput
+          placeholder="Search by name"
+          onChangeText={setSearchQuery}
+          style={styles.searchInput}
+        />
+>>>>>>> Stashed changes
       </View>
 
       <View style={styles.tabs}>
@@ -81,6 +104,7 @@ const AppointmentsPage = () => {
       </View>
 
       <ScrollView style={styles.appointmentsList}>
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
         {filteredAppointments.map((appointment) => (
           <TouchableOpacity key={appointment.id} onPress={() => navigateToPatientPage(appointment.id)}>
@@ -92,6 +116,8 @@ const AppointmentsPage = () => {
                   <Text style={styles.appointmentText}>Age: {appointment.age}</Text>
                   <Text style={styles.appointmentText}>{new Date(appointment.time).toLocaleString()}</Text>
 =======
+=======
+>>>>>>> Stashed changes
         {appointments.length > 0 ? (
           appointments.map((appointment) => (
             // TODO: add navigation to appointment details scren
@@ -115,8 +141,12 @@ const AppointmentsPage = () => {
       <BottomNavBar />
     </View>
   );
+<<<<<<< Updated upstream
         };
 
+=======
+};
+>>>>>>> Stashed changes
 const styles = StyleSheet.create({
   container: {
     flex: 1,
